@@ -1,11 +1,11 @@
 package game.engine;
 
 import game.engine.monsters.*;
+import game.engine.dataloader.*;
 
 import java.io.IOException;
 import java.util.*;
 
-import game.engine.dataloader.*;
 
 public class Game {
 	private Board board;

@@ -9,9 +9,9 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class DataLoader  {
-	private static String CARDS_FILE_NAME = "E:/GUC Courses/New folder/el gayar - 69/Game CSV files/cards.csv";
-	private static String CELLS_FILE_NAME = "E:/GUC Courses/New folder/el gayar - 69/Game CSV files/cells.csv";
-	private static String MONSTERS_FILE_NAME = "E:/GUC Courses/New folder/el gayar - 69/Game CSV files/monsters.csv";
+	private static final String CARDS_FILE_NAME = "cards.csv";
+	private static final String CELLS_FILE_NAME = "E:/GUC Courses/New folder/el gayar - 69/Game CSV files/cells.csv";
+	private static final String MONSTERS_FILE_NAME = "monsters.csv";
 	
 	public static ArrayList<Card> readCards() throws IOException {
 	    ArrayList<Card> cards = new ArrayList<Card>();

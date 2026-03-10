@@ -10,7 +10,7 @@ public class Board {
 	private Cell[][] boardCells; //BOARD ROWS x BOARD COLS
 	private static ArrayList<Monster> stationedMonsters; 
 	private static ArrayList<Card> originalCards;
-	private static ArrayList<Card> cards;
+	public static ArrayList<Card> cards;
 	
 	public Cell[][] getBoardCells() {
 		return boardCells;
@@ -29,7 +29,7 @@ public class Board {
 	}
 	public static void setCards(ArrayList<Card> newCards) {
 		cards = newCards;
-	}
+	}	
 	public Board(ArrayList<Card> readCards){
 		Constants c = new Constants();
 		boardCells = new Cell[c.BOARD_ROWS][c.BOARD_COLS];
