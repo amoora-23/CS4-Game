@@ -18,11 +18,19 @@ public class Dasher extends Monster {
 		this.momentumTurns = momentumTurns;
 	}
 	public void setPosition(int position)
-	{
+	{	
 		int change=position-getPosition();
-		change=2*change;
+		if(this.momentumTurns == 0)
+			change=2*change;
+		else
+			change=3*change;
 		position=getPosition()+change;
 		super.setPosition(position);
+	}
+
+	@Override
+	public void executePowerupEffect(Monster opponentMonster) {
+		this.momentumTurns = 3;
 	}
 
 }

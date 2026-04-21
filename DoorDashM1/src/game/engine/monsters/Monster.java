@@ -121,4 +121,14 @@ public abstract class Monster implements Comparable<Monster> {
 			role=originalRole;
 		}
 	}
+	
+	public abstract void executePowerupEffect(Monster opponentMonster);
+	
+	public boolean isConfused(){
+		return confusionTurns > 0;
+	}
+	
+	public void move(int distance){
+		this.position += distance;
+	}
 }
