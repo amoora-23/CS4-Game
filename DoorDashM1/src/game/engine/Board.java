@@ -1,6 +1,7 @@
 package game.engine;
 
 import java.util.ArrayList;
+import java.util.*;
 
 import game.engine.cards.Card;
 import game.engine.cells.*;
@@ -11,6 +12,7 @@ public class Board {
 	private static ArrayList<Monster> stationedMonsters; 
 	private static ArrayList<Card> originalCards;
 	public static ArrayList<Card> cards;
+	
 	
 	public Board(ArrayList<Card> readCards) {
 		this.boardCells = new Cell[Constants.BOARD_ROWS][Constants.BOARD_COLS];
@@ -41,5 +43,14 @@ public class Board {
 	
 	public static void setCards(ArrayList<Card> cards) {
 		Board.cards = cards;
+	}
+	public static void reloadCards(){
+		cards = new ArrayList<>(originalCards);
+		Collections.shuffle(cards); 
+	}
+	public static Card drawCard(){
+		if(cards.isEmpty())
+			reloadCards();
+		return cards.remove(0);
 	}
 }

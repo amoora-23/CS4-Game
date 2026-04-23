@@ -1,7 +1,8 @@
 package game.engine.cells;
-
-import game.engine.Role;
+import java.util.*;
+import game.engine.*;
 import game.engine.interfaces.CanisterModifier;
+import game.engine.monsters.Monster;
 
 public class DoorCell extends Cell implements CanisterModifier {
 	private Role role;
@@ -31,4 +32,29 @@ public class DoorCell extends Cell implements CanisterModifier {
 		this.activated = isActivated;
 	}
 
-}
+	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
+		int initial = monster.getEnergy();
+		monster.alterEnergy(canisterValue);
+		ArrayList<Monster> Monsters = Board.getStationedMonsters();
+		for(int i = 0 ; i < Monsters.size() ; i++){
+			if(Monsters.get(i).getRole() == monster.getRole())
+				Monsters.get(i).alterEnergy(canisterValue);
+		}
+		if(initial != monster.getEnergy())
+			activated = true;
+		
+	}
+
+	public void onLand(Monster landingMonster, Monster opponentMonster) {
+		super.onLand(landingMonster, opponentMonster);
+		if(! activated ){
+			if(landingMonster.getRole()==role)
+				modifyCanisterEnergy(landingMonster, energy);
+			else 
+				modifyCanisterEnergy(landingMonster, -energy);
+		}
+		}
+	}
+	
+
+

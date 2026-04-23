@@ -7,7 +7,7 @@ public class SwapperCard extends Card {
 	public SwapperCard(String name, String description, int rarity) {
 		super(name, description, rarity, true);
 	}
-	void performAction(Monster player, Monster opponent){
+	public void performAction(Monster player, Monster opponent){
 		if(player.getPosition()<opponent.getPosition()){
 			int temp=player.getPosition();
 			player.setPosition(opponent.getPosition());

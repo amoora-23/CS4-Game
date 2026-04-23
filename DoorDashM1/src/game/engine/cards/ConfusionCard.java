@@ -14,7 +14,7 @@ public class ConfusionCard extends Card {
 	public int getDuration() {
 		return duration;
 	}
-	void performAction(Monster player, Monster opponent){
+	public void performAction(Monster player, Monster opponent){
 		if(this.getRarity()==3)
 			duration=2;
 		else if(this.getRarity()==2)
