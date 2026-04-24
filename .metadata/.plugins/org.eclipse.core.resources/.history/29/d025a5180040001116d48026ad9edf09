@@ -17,14 +17,15 @@ public class Dasher extends Monster {
 	public void setMomentumTurns(int momentumTurns) {
 		this.momentumTurns = momentumTurns;
 	}
-	public void move(int distance)
+	public void setPosition(int position)
 	{	
-		if(momentumTurns==0)
-			super.move(distance*2);
-		else{
-			super.move(distance*3);
-			momentumTurns--;
-		}
+		int change=position-getPosition();
+		if(this.momentumTurns == 0)
+			change=2*change;
+		else
+			change=3*change;
+		position=getPosition()+change;
+		super.setPosition(position);
 	}
 
 	@Override

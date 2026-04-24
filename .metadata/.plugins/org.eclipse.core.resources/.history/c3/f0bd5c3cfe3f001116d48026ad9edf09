@@ -17,14 +17,13 @@ public class MultiTasker extends Monster {
 	public void setNormalSpeedTurns(int normalSpeedTurns) {
 		this.normalSpeedTurns = normalSpeedTurns;
 	}
-	public void move(int distance)
+	public void setPosition(int position)
 	{
-		if(normalSpeedTurns >0){
-			super.move((int)distance);
-			normalSpeedTurns--;
-		}
-		else
-			super.move((int)distance/2);
+		int change=position-getPosition();
+		if(normalSpeedTurns == 0)
+			change=change/2;
+		position=getPosition()+change;
+		super.setPosition(position);
 	}
 	public void setEnergy(int energy)
 	{
@@ -33,8 +32,6 @@ public class MultiTasker extends Monster {
 		energy=getEnergy()+change;
 		super.setEnergy(energy);
 	}
-	
-	
 
 	@Override
 	public void executePowerupEffect(Monster opponentMonster) {
