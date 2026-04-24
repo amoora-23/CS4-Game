@@ -19,51 +19,22 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 		
 	}
 
-	public void performAction(Monster player, Monster opponent) {
-		if(this.getRarity()==3){
-			if(opponent.getEnergy()<50){
-				player.alterEnergy(opponent.getEnergy());
-				opponent.alterEnergy(-opponent.getEnergy());
-				modifyCanisterEnergy(player, opponent.getEnergy());
-				modifyCanisterEnergy(opponent, -opponent.getEnergy());
-			}
-			else{
-			player.alterEnergy(50);
-			opponent.alterEnergy(-50);
-			modifyCanisterEnergy(player, 50);
-            modifyCanisterEnergy(opponent, -50);
-
-			}
+	public void performAction(Monster player, Monster opponent)
+	{
+		if(opponent.isShielded())
+		{
+			opponent.setShielded(false);
+			return;
 		}
-		else if(this.getRarity()==2){
-			if(opponent.getEnergy()<100){
-				player.alterEnergy(opponent.getEnergy());
-				opponent.alterEnergy(-opponent.getEnergy());
-				modifyCanisterEnergy(player, opponent.getEnergy());
-				modifyCanisterEnergy(opponent, -opponent.getEnergy());
-			}
-			else{
-			player.alterEnergy(100);
-			opponent.alterEnergy(-100);
-			modifyCanisterEnergy(player, 100);
-            modifyCanisterEnergy(opponent, -100);
-
-			}
+		if(energy>opponent.getEnergy())
+		{
+			modifyCanisterEnergy(player, opponent.getEnergy());
+			modifyCanisterEnergy(opponent, -opponent.getEnergy());
 		}
-		else if(this.getRarity()==1){
-			if(opponent.getEnergy()<150){
-				player.alterEnergy(opponent.getEnergy());
-				opponent.alterEnergy(-opponent.getEnergy());
-				modifyCanisterEnergy(player, opponent.getEnergy());
-				modifyCanisterEnergy(opponent, -opponent.getEnergy());
-			}
-			else{
-			player.alterEnergy(150);
-			opponent.alterEnergy(150);
-			modifyCanisterEnergy(player, 150);
-			modifyCanisterEnergy(opponent, -150);
-
-			}
+		else
+		{
+			modifyCanisterEnergy(player, energy);
+			modifyCanisterEnergy(opponent, -energy);
 		}
 	}
 }
