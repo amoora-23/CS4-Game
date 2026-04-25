@@ -132,5 +132,6 @@ public abstract class Monster implements Comparable<Monster> {
 	
 	public void move(int distance){
 		this.position += distance;
+		this.position = this.position%100;
 	}
 }

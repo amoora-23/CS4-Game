@@ -1,10 +1,13 @@
 package game.engine;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import game.engine.dataloader.DataLoader;
+import game.engine.exceptions.InvalidMoveException;
+import game.engine.exceptions.OutOfEnergyException;
 import game.engine.monsters.*;
 
 public class Game {
@@ -22,6 +25,13 @@ public class Game {
 		this.player = selectRandomMonsterByRole(playerRole);
 		this.opponent = selectRandomMonsterByRole(playerRole == Role.SCARER ? Role.LAUGHER : Role.SCARER);
 		this.current = player;
+		/*ArrayList<Monster> stationedMonsters = new ArrayList<Monster>(allMonsters);
+		for(Monster m: stationedMonsters){
+			if(m == player || m == opponent)
+				stationedMonsters.remove(m);
+		}
+		Board.setStationedMonsters(stationedMonsters);
+		board.initializeBoard(DataLoader.readCells());*/
 	}
 	
 	public Board getBoard() {
@@ -54,6 +64,54 @@ public class Game {
 	    		.filter(m -> m.getRole() == role)
 	    		.findFirst()
 	    		.orElse(null);
+	}
+	
+	private Monster getCurrentOpponent(){
+		if(player == current)
+			return opponent;
+		return player;
+	}
+	
+	private int rollDice() {
+	    Random rand = new Random();
+	    return rand.nextInt(6) + 1;
+	}
+	
+	public void usePowerup() throws OutOfEnergyException{
+		if(current.getEnergy()< Constants.POWERUP_COST)
+			throw new OutOfEnergyException();
+		current.executePowerupEffect(getCurrentOpponent());
+		current.setEnergy(current.getEnergy()-Constants.POWERUP_COST);
+	}
+	
+	public void playTurn() throws InvalidMoveException{
+		if(current.isFrozen()){
+			current.setFrozen(false);
+			switchTurn();
+			return;
+		}
+		int roll = rollDice();
+		board.moveMonster(current, roll, getCurrentOpponent());
+		switchTurn();
+	}
+	
+	private void switchTurn(){
+		if(current == player)
+			current = opponent;
+		else
+			current = player;
+	}
+	
+	private boolean checkWinCondition(Monster monster){
+		return(monster.getPosition() == Constants.WINNING_POSITION && monster.getEnergy() >= Constants.WINNING_ENERGY);
+	}
+	
+	public Monster getWinner(){
+		if(checkWinCondition(player))
+			return player;
+		if(checkWinCondition(opponent))
+			return opponent;
+		return null;
 	}
 	
 }

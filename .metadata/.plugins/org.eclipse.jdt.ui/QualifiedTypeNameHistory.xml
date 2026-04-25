@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="game.engine.monsters.Monster"/>
-<fullyQualifiedTypeName name="game.engine.Constants"/>
+<fullyQualifiedTypeName name="game.engine.cells.ConveyorBelt"/>
+<fullyQualifiedTypeName name="game.engine.cells.CardCell"/>
+<fullyQualifiedTypeName name="game.engine.cells.DoorCell"/>
+<fullyQualifiedTypeName name="game.engine.cells.MonsterCell"/>
+<fullyQualifiedTypeName name="game.engine.exceptions.OutOfEnergyException"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="game.engine.dataloader.DataLoader"/>
+<fullyQualifiedTypeName name="game.engine.exceptions.InvalidMoveException"/>
+<fullyQualifiedTypeName name="game.engine.Constants"/>
 </qualifiedTypeNameHistroy>

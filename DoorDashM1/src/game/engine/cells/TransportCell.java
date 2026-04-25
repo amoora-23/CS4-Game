@@ -14,6 +14,11 @@ public abstract class TransportCell extends Cell {
 		return effect;
 	}
 	public void transport(Monster monster){
+		if(monster instanceof Dasher){
+			((Dasher)monster).moveParent(effect);
+			return;
+		}
+			
 		monster.move(effect);
 	}
 
