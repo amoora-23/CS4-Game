@@ -83,20 +83,21 @@ public class Board {
 		int index_socks = 0;
 		int odds = 1;
 		for(Cell c: specialCells){
-			if(c instanceof DoorCell){
-				setCell(odds, c);
-				odds +=2;
-			}
 			if(c instanceof ConveyorBelt){
 				setCell(Constants.CONVEYOR_CELL_INDICES[index_conveyer++], c);
 			}
-			else
+			else if (c instanceof ContaminationSock)
 				setCell(Constants.SOCK_CELL_INDICES[index_socks++], c);
+			else if (c instanceof DoorCell)
+				{
+					setCell(odds , c);
+					odds+=2;
+				}
 		}
 		for(int i = 0; i<Constants.CARD_CELL_INDICES.length; i++)
-			setCell(Constants.CARD_CELL_INDICES[i], new CardCell("Card cell " + (i+1)));
+			setCell(Constants.CARD_CELL_INDICES[i], new CardCell("Card cell"));
 		
-		for(int i = 0; i<Constants.MONSTER_CELL_INDICES.length; i++){
+		for(int i = 0; i<Constants.MONSTER_CELL_INDICES.length ; i++){
 			setCell(Constants.MONSTER_CELL_INDICES[i], new MonsterCell(stationedMonsters.get(i).getName(), stationedMonsters.get(i)));
 		}
 		
@@ -115,6 +116,7 @@ public class Board {
 	    }
 	    originalCards = expandedCards;
 	}
+	
 	
 	public void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException{
 		currentMonster.move(roll);

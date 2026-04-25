@@ -96,8 +96,8 @@ public class DoorCell extends Cell implements CanisterModifier {
 		}
 	}*/
 	
-	/*@Override
-	public void onLand(Monster landingMonster, Monster opponentMonster) {
+	@Override
+	/*public void onLand(Monster landingMonster, Monster opponentMonster) {
 		super.onLand(landingMonster, opponentMonster);
 		if (activated)
 			return;

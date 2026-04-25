@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import game.engine.cells.Cell;
 import game.engine.dataloader.DataLoader;
 import game.engine.exceptions.InvalidMoveException;
 import game.engine.exceptions.OutOfEnergyException;
@@ -25,13 +26,16 @@ public class Game {
 		this.player = selectRandomMonsterByRole(playerRole);
 		this.opponent = selectRandomMonsterByRole(playerRole == Role.SCARER ? Role.LAUGHER : Role.SCARER);
 		this.current = player;
-		/*ArrayList<Monster> stationedMonsters = new ArrayList<Monster>(allMonsters);
-		for(Monster m: stationedMonsters){
-			if(m == player || m == opponent)
+		ArrayList<Monster> stationedMonsters = new ArrayList<Monster>(allMonsters);
+		for(Monster m: allMonsters){
+			if(m==player || m==opponent)
+			{
 				stationedMonsters.remove(m);
+			}
 		}
 		Board.setStationedMonsters(stationedMonsters);
-		board.initializeBoard(DataLoader.readCells());*/
+		/*ArrayList<Cell> specialCells =DataLoader.readCells();
+		board.initializeBoard(specialCells);*/
 	}
 	
 	public Board getBoard() {
@@ -93,6 +97,7 @@ public class Game {
 		int roll = rollDice();
 		board.moveMonster(current, roll, getCurrentOpponent());
 		switchTurn();
+		
 	}
 	
 	private void switchTurn(){
