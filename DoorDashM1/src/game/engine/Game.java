@@ -26,16 +26,16 @@ public class Game {
 		this.player = selectRandomMonsterByRole(playerRole);
 		this.opponent = selectRandomMonsterByRole(playerRole == Role.SCARER ? Role.LAUGHER : Role.SCARER);
 		this.current = player;
-		ArrayList<Monster> stationedMonsters = new ArrayList<Monster>(allMonsters);
+		ArrayList<Monster> stationedMonsters = new ArrayList<Monster>();
 		for(Monster m: allMonsters){
-			if(m==player || m==opponent)
+			if(m!=player && m!=opponent)
 			{
-				stationedMonsters.remove(m);
+				stationedMonsters.add(m);
 			}
 		}
 		Board.setStationedMonsters(stationedMonsters);
-		/*ArrayList<Cell> specialCells =DataLoader.readCells();
-		board.initializeBoard(specialCells);*/
+		//ArrayList<Cell> specialCells =DataLoader.readCells();
+		//board.initializeBoard(specialCells);
 	}
 	
 	public Board getBoard() {
@@ -96,8 +96,11 @@ public class Game {
 		}
 		int roll = rollDice();
 		board.moveMonster(current, roll, getCurrentOpponent());
-		switchTurn();
-		
+		if(getWinner()==null)
+		{
+			switchTurn();
+			playTurn();
+		}
 	}
 	
 	private void switchTurn(){
