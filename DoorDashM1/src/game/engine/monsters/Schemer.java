@@ -11,23 +11,16 @@ public class Schemer extends Monster {
 	public Schemer(String name, String description, Role role, int energy) {
 		super(name, description, role, energy);
 	}
-	public void setEnergy(int energy)
-	{
-		int change=energy-getEnergy();
-		change=Constants.SCHEMER_STEAL+change;
-		energy=getEnergy()+change;
-		super.setEnergy(energy);
-	}
 	
 	private int stealEnergyFrom(Monster target){
 		int gained = 0;
 		if(Constants.SCHEMER_STEAL<target.getEnergy()){
 			gained = Constants.SCHEMER_STEAL;
-			target.setEnergy(target.getEnergy()-gained);
+			target.alterEnergy(-gained);
 		}
 		else{
 			gained = target.getEnergy();
-			target.setEnergy(0);
+			target.alterEnergy(-gained);
 		}
 		return gained;
 	}
@@ -39,7 +32,7 @@ public class Schemer extends Monster {
 		for(int i = 0; i<monsters.size(); i++){
 			total += stealEnergyFrom(monsters.get(i));
 		}
-		this.setEnergy(this.getEnergy()+total);
+		this.alterEnergy(total);
 		return;
 	}
 }

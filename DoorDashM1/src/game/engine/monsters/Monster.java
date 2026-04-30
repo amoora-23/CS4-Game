@@ -103,13 +103,26 @@ public abstract class Monster implements Comparable<Monster> {
 			}
 			else
 			{
-				setEnergy(this.energy+energy);
-				return;
+				if(this instanceof Dynamo)
+					setEnergy(getEnergy()+2*energy);
+				else if(this instanceof Dasher)
+					setEnergy(getEnergy()+energy);
+				else if(this instanceof MultiTasker)
+					setEnergy(getEnergy()+Constants.MULTITASKER_BONUS+energy);
+				else if(this instanceof Schemer)
+					setEnergy(getEnergy()+Constants.SCHEMER_STEAL+energy);
+				
 			}
 		}
 		else{
-			setEnergy(this.energy+energy);
-			return;
+			if(this instanceof Dynamo)
+				setEnergy(getEnergy()+2*energy);
+			else if(this instanceof Dasher)
+				setEnergy(getEnergy()+energy);
+			else if(this instanceof MultiTasker)
+				setEnergy(getEnergy()+Constants.MULTITASKER_BONUS+energy);
+			else if(this instanceof Schemer)
+				setEnergy(getEnergy()+Constants.SCHEMER_STEAL+energy);
 		}
 	}
 	public void decrementConfusion()

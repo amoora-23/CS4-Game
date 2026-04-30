@@ -23,7 +23,7 @@ public class MonsterCell extends Cell {
 		else{
 			int diff = cellMonster.getEnergy() - landingMonster.getEnergy();
 			if(diff < 0){
-				cellMonster.setEnergy(landingMonster.getEnergy());
+				cellMonster.alterEnergy(-diff);
 				landingMonster.alterEnergy(diff);
 			}
 		}

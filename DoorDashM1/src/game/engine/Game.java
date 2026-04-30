@@ -26,16 +26,14 @@ public class Game {
 		this.player = selectRandomMonsterByRole(playerRole);
 		this.opponent = selectRandomMonsterByRole(playerRole == Role.SCARER ? Role.LAUGHER : Role.SCARER);
 		this.current = player;
-		ArrayList<Monster> stationedMonsters = new ArrayList<Monster>();
-		for(Monster m: allMonsters){
-			if(m!=player && m!=opponent)
-			{
-				stationedMonsters.add(m);
-			}
-		}
-		Board.setStationedMonsters(stationedMonsters);
-		//ArrayList<Cell> specialCells =DataLoader.readCells();
-		//board.initializeBoard(specialCells);
+		
+		Board.setStationedMonsters(allMonsters);
+		Board.getStationedMonsters().remove(player);
+		Board.getStationedMonsters().remove(opponent);
+
+		
+		ArrayList<Cell> specialCells =DataLoader.readCells();
+		board.initializeBoard(specialCells);
 	}
 	
 	public Board getBoard() {

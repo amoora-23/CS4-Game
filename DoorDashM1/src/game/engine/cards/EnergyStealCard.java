@@ -29,7 +29,7 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 		if(energy>opponent.getEnergy())
 		{
 			modifyCanisterEnergy(player, opponent.getEnergy());
-			modifyCanisterEnergy(opponent, -opponent.getEnergy());
+			opponent.setEnergy(0);
 		}
 		else
 		{

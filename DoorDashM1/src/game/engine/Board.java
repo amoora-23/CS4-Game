@@ -9,9 +9,9 @@ import game.engine.monsters.Monster;
 
 public class Board {
 	private Cell[][] boardCells;
-	private static ArrayList<Monster> stationedMonsters; 
-	private static ArrayList<Card> originalCards;
-	public static ArrayList<Card> cards;
+	private static ArrayList<Monster> stationedMonsters= new ArrayList<Monster>(); 
+	private static ArrayList<Card> originalCards= new ArrayList<Card>();
+	public static ArrayList<Card> cards= new ArrayList<Card>();
 	
 	
 	public Board(ArrayList<Card> readCards) {
@@ -97,7 +97,7 @@ public class Board {
 		for(int i = 0; i<Constants.CARD_CELL_INDICES.length; i++)
 			setCell(Constants.CARD_CELL_INDICES[i], new CardCell("Card cell"));
 		
-		for(int i = 0; i<Constants.MONSTER_CELL_INDICES.length ; i++){
+		for(int i = 0; i<stationedMonsters.size() ; i++){
 			setCell(Constants.MONSTER_CELL_INDICES[i], new MonsterCell(stationedMonsters.get(i).getName(), stationedMonsters.get(i)));
 			stationedMonsters.get(i).setPosition(Constants.MONSTER_CELL_INDICES[i]);
 		}
