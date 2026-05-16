@@ -1,62 +1,74 @@
 package game.gui.controllers;
 
-	import javafx.fxml.FXML;
-	import javafx.fxml.FXMLLoader;
-	import javafx.scene.Node;
-	import javafx.scene.Parent;
-	import javafx.scene.Scene;
-	import javafx.scene.control.Label;
-	import javafx.stage.Stage;
-	import javafx.event.ActionEvent;
-	import game.engine.monsters.Monster;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.Node;
+import javafx.stage.Stage;
+import javafx.event.ActionEvent;
+import java.io.IOException;
 
-	public class GameOverController {
+import game.engine.Game;
 
-	    // Must match fx:id in GameOver.fxml
-	    @FXML private Label winnerNameLabel;
-	    @FXML private Label finalEnergyLabel;
-	    @FXML private Label resultMessageLabel;
+public class GameOverController {
 
-	    /**
-	     * Handshake method to display the winner's stats.
-	     */
-	    public void setWinnerData(Monster winner) {
-	        winnerNameLabel.setText(winner.getName() + " Wins!");
-	        finalEnergyLabel.setText("Final Energy: " + winner.getEnergy());
-	        
-	        // Custom message based on role [cite: 83]
-	        if (winner.getOriginalRole().toString().equals("SCARER")) {
-	            resultMessageLabel.setText("The Scare Floor is yours!");
-	        } else {
-	            resultMessageLabel.setText("The world is powered by laughter!");
-	        }
-	    }
+    // These names must match your FXML fx:id parameters perfectly!
+    @FXML private Label winnerNameLabel;
+    @FXML private Label finalEnergyLabel;
+    @FXML private Label resultMessageLabel;
+    @FXML private Button restartBtn;
+    @FXML private Button exitBtn;
 
-	    /**
-	     * Resets the game by returning to the Start Screen.
-	     */
-	    @FXML
-	    private void handlePlayAgain(ActionEvent event) {
-	        try {
-	            FXMLLoader loader = new FXMLLoader(getClass().getResource("/game/gui/views/StartScreen.fxml"));
-	            Parent root = loader.load();
-	            
-	            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-	            stage.setScene(new Scene(root));
-	            stage.show();
-	        } catch (Exception e) {
-	            System.out.println("Error returning to start: " + e.getMessage());
-	        }
-	    }
+    @FXML
+    public void initialize() {
+        // Safe styling wrapper with null checks
+        if (restartBtn != null) {
+            restartBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 12px; -fx-background-radius: 25; -fx-cursor: hand;");
+            restartBtn.setOnMouseEntered(e -> restartBtn.setStyle("-fx-background-color: #00f2fe; -fx-text-fill: #111424; -fx-background-radius: 25;"));
+            restartBtn.setOnMouseExited(e -> restartBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: #111424; -fx-background-radius: 25;"));
+        }
+    }
 
-	    /**
-	     * Closes the application.
-	     */
-	    @FXML
-	    private void handleExit() {
-	        System.exit(0);
-	    }
-	
-	
+    /**
+     * Handshake method to pull winner statistics out of your game engine
+     */
+    public void setEndgameState(Game engine) {
+        if (engine != null && engine.getWinner() != null) {
+            winnerNameLabel.setText(engine.getWinner().getName().toUpperCase());
+            finalEnergyLabel.setText("Final Energy: " + engine.getWinner().getEnergy());
+            resultMessageLabel.setText("Touchdown target achieved successfully!");
+        }
+    }
+
+    /**
+     * Matches onAction="#handleReturnToMenu" from your FXML
+     */
+    @FXML
+    private void handleReturnToMenu(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("/game/gui/views/StartScreen.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setFullScreen(true); 
+            stage.show();
+            
+        } catch (IOException e) {
+            System.err.println("Failed to reload StartScreen FXML: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Matches onAction="#handleExit" from your FXML
+     */
+    @FXML
+    private void handleExit(ActionEvent event) {
+        javafx.application.Platform.exit();
+        System.exit(0);
+    }
 }
-	

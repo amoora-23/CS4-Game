@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #000000;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="game.gui.controllers.GameOverController">
+   <children>
+      <Label fx:id="winnerNameLabel" text="WINNER NAME" textFill="#f1c40f">
+         <font>
+            <Font name="System Bold" size="36.0" />
+         </font>
+      </Label>
+      <Label fx:id="finalEnergyLabel" text="Final Energy: 0" textFill="WHITE" />
+      <Label fx:id="resultMessageLabel" text="Message" textFill="#bdc3c7" />
+      <HBox alignment="CENTER" spacing="20.0">
+         <children>
+            <Button onAction="#handlePlayAgain" text="PLAY AGAIN" />
+            <Button onAction="#handleExit" text="EXIT GAME" />
+         </children>
+      </HBox>
+   </children>
+</VBox>

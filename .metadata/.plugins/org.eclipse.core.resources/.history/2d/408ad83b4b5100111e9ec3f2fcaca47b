@@ -1,0 +1,186 @@
+package game.gui.controllers;
+
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.Node;
+import javafx.stage.Stage;
+import javafx.event.ActionEvent;
+
+import java.io.IOException;
+
+import game.engine.Game;
+import game.engine.Role;
+
+public class StartController {
+
+    // Main Layout Panes
+    @FXML private VBox mainMenuPane;
+    @FXML private VBox briefingPane;
+
+    // Form inputs & drop-downs
+    @FXML private ComboBox<String> gameModeBox;
+    @FXML private RadioButton scarerBtn;
+    @FXML private RadioButton laugherBtn;
+    @FXML private Button startBtn;
+    @FXML private Button howToPlayBtn;
+
+    // Briefing Screen Fields
+    @FXML private Label lblUserName;
+    @FXML private Label lblUserType;
+    @FXML private Label lblUserEnergy;
+    @FXML private Label lblOppName;
+    @FXML private Label lblOppType;
+    @FXML private Label lblOppEnergy;
+    @FXML private Button commenceMatchBtn;
+
+    @FXML
+    public void initialize() {
+        scarerBtn.setSelected(true);
+        gameModeBox.getSelectionModel().selectFirst();
+
+        // Style the Menu Controls
+        startBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 25; -fx-cursor: hand;");
+        startBtn.setOnMouseEntered(e -> startBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 25;"));
+        startBtn.setOnMouseExited(e -> startBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 25;"));
+
+        // Style the Transition Launch Button
+        commenceMatchBtn.setStyle("-fx-background-color: #f1c40f; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 14px; -fx-background-radius: 25; -fx-cursor: hand;");
+        commenceMatchBtn.setOnMouseEntered(e -> commenceMatchBtn.setStyle("-fx-background-color: #d4ac0d; -fx-text-fill: white;"));
+        commenceMatchBtn.setOnMouseExited(e -> commenceMatchBtn.setStyle("-fx-background-color: #f1c40f; -fx-text-fill: #111424;"));
+    }
+
+    /**
+     * MODIFIED HANDLE START: Intercepts selection data, populates briefing stats,
+     * and displays the transition pane full-screen without leaving the file.
+     */
+    @FXML
+    private void handleStartGame(ActionEvent event) {
+        boolean isScarerSelected = scarerBtn.isSelected();
+
+        // Populate dynamic values based on the choice
+        if (isScarerSelected) {
+            lblUserName.setText("JAMES P. SULLIVAN (SULLEY)");
+            lblUserType.setText("ARCHETYPE CLASS: DASHER");
+            lblUserEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+
+            lblOppName.setText("MIKE WAZOWSKI");
+            lblOppType.setText("ARCHETYPE CLASS: SCHEMER");
+            lblOppEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+        } else {
+            lblUserName.setText("MIKE WAZOWSKI");
+            lblUserType.setText("ARCHETYPE CLASS: SCHEMER");
+            lblUserEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+
+            lblOppName.setText("JAMES P. SULLIVAN (SULLEY)");
+            lblOppType.setText("ARCHETYPE CLASS: DASHER");
+            lblOppEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+        }
+
+        // SWAP PANES AT THE WINDOW ROOT LEVEL
+        mainMenuPane.setVisible(false);
+        mainMenuPane.setManaged(false);
+
+        briefingPane.setVisible(true);
+        briefingPane.setManaged(true);
+    }
+
+    /**
+     * NEW ACTION METHOD: Fires when "COMMENCE MATCH SEQUENCE" is triggered, 
+     * running your exact untouched scene transition loop.
+     */
+    @FXML
+    private void handleCommenceMatch(ActionEvent event) {
+        try {
+            // Your original structural compilation sequence:
+            Role selectedRole = scarerBtn.isSelected() ? Role.SCARER : Role.LAUGHER;
+            Game gameEngine = new Game(selectedRole);
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/game/gui/views/GameBoard.fxml"));
+            Parent root = loader.load();
+
+            GameBoardController boardController = loader.getController();
+            boardController.setGameEngine(gameEngine);
+
+            boolean isVsBot = gameModeBox.getValue().toUpperCase().contains("BOT");
+            boardController.setBotMode(isVsBot);
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root);
+            
+            String css = getClass().getResource("/game/gui/views/style.css").toExternalForm();
+            scene.getStylesheets().add(css);
+            
+            stage.setScene(scene);
+            stage.setFullScreen(true);
+            stage.show();
+
+        } catch (IOException e) {
+            System.err.println("Error loading game data or FXML: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void showInstructions() {
+        javafx.stage.Stage window = new javafx.stage.Stage();
+        // Blocks interaction with the main start screen until read
+        window.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        window.setTitle("DooR DasH - Mission Instructions");
+
+        // 1. Create the Text Content using clean formatting
+        String rulesText = 
+            "🚪 MISSION OBJECTIVE\n" +
+            "DooR DasH is a competitive, turn-based board game where two Monsters (Scarers vs. Laughers) " +
+            "race across a 10x10 zigzag grid. Navigate hazards, manage energy, and be the first to " +
+            "activate the final Winning Door at Position 99!\n\n" +
+            
+            "🕹️ HOW TO PLAY\n" +
+            "• Toggle Power-Up: Check 'Use Powerup' before moving if you want to deploy your unique ability.\n" +
+            "• Roll Dice: Click 'ROLL DICE' to randomize your step size and advance through the factory.\n\n" +
+            
+            "🗺️ THE FACTORY FLOOR (SPECIAL CELLS)\n" +
+            "• 🟪 Door Cells (0 & 99): The entry and terminal checkpoints of the Scare Floor.\n" +
+            "• 🟧 Sock Cells (2319): Severe biohazard! Emergency decontamination costs you Energy.\n" +
+            "• 🟩 Conveyor Belts: Factory machinery that automatically shifts your position forward or backward.\n" +
+            "• 🟥 Card Cells: Automatically draws a card from the deck, applying volatile modifier effects.\n\n" +
+            
+            "⚡ WINNING REQUIREMENTS\n" +
+            "Crossing the line isn't enough! To trigger a Touchdown Victory, you must:\n" +
+            "1. Secure exact landing on Position 99.\n" +
+            "2. Hold a minimum balance of 1000 Energy units.\n\n" +
+            "Good luck, recruit. The grid is live!";
+
+        // 2. Wrap text inside a Label with automated wrapping enabled
+        javafx.scene.control.Label textLabel = new javafx.scene.control.Label(rulesText);
+        textLabel.setWrapText(true);
+        textLabel.setStyle("-fx-text-fill: #ecf0f1; -fx-font-family: 'Segoe UI', Arial; -fx-font-size: 13px; -fx-line-spacing: 1.2;");
+
+        // 3. Put it inside a ScrollPane so it handles smaller screens comfortably
+        javafx.scene.control.ScrollPane scrollPane = new javafx.scene.control.ScrollPane(textLabel);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setPrefHeight(300);
+        scrollPane.setStyle("-fx-background: #2c3e50; -fx-background-color: #2c3e50; -fx-padding: 10;");
+
+        // 4. Close Button Setup
+        javafx.scene.control.Button closeBtn = new javafx.scene.control.Button("UNDERSTOOD");
+        closeBtn.setPrefWidth(120);
+        closeBtn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+        closeBtn.setOnAction(e -> window.close());
+
+        // 5. Layout Alignment
+        javafx.scene.layout.VBox layout = new javafx.scene.layout.VBox(15);
+        layout.getChildren().addAll(scrollPane, closeBtn);
+        layout.setAlignment(javafx.geometry.Pos.CENTER);
+        layout.setPadding(new javafx.geometry.Insets(20));
+        layout.setStyle("-fx-background-color: #1a1a2e; -fx-border-color: #3498db; -fx-border-width: 3;");
+
+        // 6. Build and Display Stage
+        javafx.scene.Scene scene = new javafx.scene.Scene(layout, 450, 400);
+        window.setScene(scene);
+        window.showAndWait();
+    }
+}

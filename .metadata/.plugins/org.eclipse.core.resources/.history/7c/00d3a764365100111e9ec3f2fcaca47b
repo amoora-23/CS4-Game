@@ -1,0 +1,291 @@
+package game.gui.controllers;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
+import javafx.scene.paint.Color;
+import javafx.scene.effect.DropShadow;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.Modality;
+import game.engine.Game;
+import game.engine.Constants;
+import game.engine.monsters.Monster;
+import game.engine.cells.*;
+import game.engine.cells.Cell;
+import game.engine.exceptions.*;
+
+public class GameBoardController {
+
+    @FXML private GridPane gameBoardGrid;
+    @FXML private Label turnLabel;
+    @FXML private Button powerUpButton;
+    
+    // Game Log feed console
+    @FXML private TextArea gameLog;
+    
+    // Left Dashboard (Player 1)
+    @FXML private Label player1NameLabel;
+    @FXML private Label player1EnergyLabel;
+    @FXML private ProgressBar player1ProgressBar;
+    @FXML private Label player1StatusLabel;
+    
+    // Right Dashboard (Player 2)
+    @FXML private Label player2NameLabel;
+    @FXML private Label player2EnergyLabel;
+    @FXML private ProgressBar player2ProgressBar;
+    @FXML private Label player2StatusLabel;
+
+    // Bottom Right Card Interface
+    @FXML private Label cardNameLabel;
+    @FXML private Label cardDescriptionLabel;
+
+    private Game engine;
+    private StackPane[] visualCells = new StackPane[100];
+
+    public void setGameEngine(Game engine) {
+        this.engine = engine;
+        
+        player1NameLabel.setText(engine.getPlayer().getName().toUpperCase());
+        player2NameLabel.setText(engine.getOpponent().getName().toUpperCase());
+        
+        generateBoard();
+        
+        // Initial clean text logs to prime the terminal monitor
+        announce("System Ready. Game parameters initialized successfully.");
+        announce("Match Configuration: " + engine.getPlayer().getName() + " VS " + engine.getOpponent().getName());
+        
+        updateUI();
+    }
+
+    private void generateBoard() {
+        gameBoardGrid.getChildren().clear();
+        gameBoardGrid.setHgap(4); 
+        gameBoardGrid.setVgap(4);
+        
+        for (int i = 0; i < 100; i++) {
+            StackPane cell = new StackPane();
+            cell.setPrefSize(62, 62);
+            cell.setMinWidth(62);  
+            cell.setMinHeight(62); 
+            
+            int row = 9 - (i / 10);
+            int col = ((i / 10) % 2 == 0) ? (i % 10) : (9 - (i % 10));
+
+            cell.setStyle("-fx-background-color: " + getCellColor(i) + "; -fx-background-radius: 6;");
+            
+            Label idLabel = new Label(String.valueOf(i));
+            idLabel.setStyle("-fx-font-size: 10px; -fx-font-family: 'Segoe UI Semibold'; -fx-text-fill: rgba(255,255,255,0.25);");
+            StackPane.setAlignment(idLabel, Pos.TOP_LEFT);
+            StackPane.setMargin(idLabel, new Insets(4, 0, 0, 6));
+            cell.getChildren().add(idLabel);
+
+            visualCells[i] = cell;
+            gameBoardGrid.add(cell, col, row);
+        }
+    }
+
+    public void updateUI() {
+        Monster p1 = engine.getPlayer();
+        Monster p2 = engine.getOpponent();
+        Monster current = engine.getCurrent();
+
+        // 1. Refresh Left Sidebar
+        player1EnergyLabel.setText("Role: " + getMonsterType(p1) + "\nEnergy: " + p1.getEnergy() + " LP");
+        player1ProgressBar.setProgress((double) p1.getEnergy() / Constants.WINNING_ENERGY);
+        player1StatusLabel.setText(buildStatusString(p1));
+        player1NameLabel.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 16px; -fx-text-fill: " + (p1.isConfused() ? "#e67e22;" : "white;"));
+
+        // 2. Refresh Right Sidebar
+        player2EnergyLabel.setText("Role: " + getMonsterType(p2) + "\nEnergy: " + p2.getEnergy() + " LP");
+        player2ProgressBar.setProgress((double) p2.getEnergy() / Constants.WINNING_ENERGY);
+        player2StatusLabel.setText(buildStatusString(p2));
+        player2NameLabel.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 16px; -fx-text-fill: " + (p2.isConfused() ? "#e67e22;" : "white;"));
+
+        // 3. Central Turn Indicator
+        turnLabel.setText(current.getName().toUpperCase() + "'S TURN");
+        turnLabel.setTextFill(current == p1 ? Color.web("#00f2fe") : Color.web("#f35588"));
+
+        // 4. Safe Card Deck Tracking
+        int pos = current.getPosition();
+        Cell currentCell = engine.getBoard().getBoardCells()[pos / 10][pos % 10];
+        if (currentCell instanceof CardCell) {
+            cardNameLabel.setText("CARD CELL ENCOUNTERED!");
+            cardDescriptionLabel.setText(current.getName() + " landed on a Red Zone! Stats have been adjusted according to the drawn card mechanics.");
+        } else {
+            cardNameLabel.setText("DECK STANDBY");
+            cardDescriptionLabel.setText("Awaiting arrival on a Red Node zone.");
+        }
+
+        // Reset power-up availability lock parameters
+        if (powerUpButton != null) {
+            powerUpButton.setDisable(false);
+        }
+
+        renderMonsters();
+    }
+
+    /**
+     * Appends a new descriptive update message line to the scrollable terminal interface feed.
+     */
+    private void announce(String message) {
+        if (gameLog != null) {
+            gameLog.appendText("» " + message + "\n");
+            gameLog.setScrollTop(Double.MAX_VALUE); // Automatically sticks to bottom lines
+        }
+    }
+
+    @FXML
+    private void handleRollDice() {
+        Monster active = engine.getCurrent();
+        int oldPos = active.getPosition();
+        int oldEnergy = active.getEnergy();
+
+        try {
+            engine.playTurn();
+            updateUI();
+            
+            // Log core metrics updates to the terminal after a successful play register
+            announce(active.getName() + " advanced from Position " + oldPos + " to " + active.getPosition());
+            
+            int energyDiff = active.getEnergy() - oldEnergy;
+            if (energyDiff != 0) {
+                announce("📊 Energy shift for " + active.getName() + ": " + (energyDiff > 0 ? "+" : "") + energyDiff + " LP");
+            }
+        } catch (InvalidMoveException e) {
+            announce("⚠️ Action Interrupted: " + e.getMessage());
+            showCustomPopup("Action Blocked", e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleUsePowerUp(javafx.event.ActionEvent event) {
+        Monster active = engine.getCurrent();
+        try {
+            engine.usePowerup();
+            updateUI();
+            
+            // Hard disable button to lock further triggers this turn
+            Button powerUpBtn = (Button) event.getSource();
+            powerUpBtn.setDisable(true);
+            
+            announce("⚡ " + active.getName() + " triggered their localized specialization Matrix power-up!");
+            showCustomPopup("Power-Up Activated", active.getName() + " successfully unleashed their specialized trait matrix!");
+        } catch (Exception e) {
+            announce("❌ Ability Failed: " + e.getMessage());
+            showCustomPopup("Power-Up Failed", e.getMessage());
+        }
+    }
+
+    private String buildStatusString(Monster monster) {
+        StringBuilder status = new StringBuilder("STATUS REPORT:\n");
+        boolean hasCondition = false;
+
+        if (monster.isFrozen()) {
+            status.append("• FROZEN ❄️\n");
+            hasCondition = true;
+        }
+        if (monster.isShielded()) {
+            status.append("• SHIELDED 🛡️\n");
+            hasCondition = true;
+        }
+        if (monster.isConfused()) {
+            status.append("• CONFUSED 🌀 (Turns: ").append(monster.getConfusionTurns()).append(")\n");
+            hasCondition = true;
+        }
+        if (!hasCondition) {
+            status.append("• OPERATIONAL 🟢\n");
+        }
+        return status.toString();
+    }
+
+    private String getMonsterType(Monster monster) {
+        String realType = "STANDARD";
+        if (monster instanceof game.engine.monsters.Dasher) realType = "DASHER";
+        else if (monster instanceof game.engine.monsters.Schemer) realType = "SCHEMER";
+        else if (monster instanceof game.engine.monsters.MultiTasker) realType = "MULTITASKER";
+        else if (monster instanceof game.engine.monsters.Dynamo) realType = "DYNAMO";
+
+        if (monster.isConfused()) {
+            switch (realType) {
+                case "DASHER":      return "🌀 SCHEMER (SCRAMBLED!)";
+                case "SCHEMER":     return "🌀 DYNAMO (SCRAMBLED!)";
+                case "MULTITASKER": return "🌀 DASHER (SCRAMBLED!)";
+                case "DYNAMO":      return "🌀 MULTITASKER (SCRAMBLED!)";
+                default:            return "🌀 CONFUSED (SCRAMBLED!)";
+            }
+        }
+
+        switch (realType) {
+            case "DASHER":      return "DASHER ⚡";
+            case "SCHEMER":     return "SCHEMER 🧠";
+            case "MULTITASKER": return "MULTITASKER 🛠️";
+            case "DYNAMO":      return "DYNAMO 🔥";
+            default:            return "MONSTER";
+        }
+    }
+
+    private void renderMonsters() {
+        for (StackPane cell : visualCells) {
+            cell.getChildren().removeIf(n -> n instanceof Circle);
+        }
+
+        Circle token1 = new Circle(14, Color.web("#00f2fe"));
+        token1.setEffect(new DropShadow(10, Color.web("#00f2fe")));
+
+        Circle token2 = new Circle(14, Color.web("#f35588"));
+        token2.setEffect(new DropShadow(10, Color.web("#f35588")));
+
+        if (engine.getPlayer().isFrozen()) token1.setStroke(Color.ALICEBLUE);
+        else if (engine.getPlayer().isConfused()) token1.setStroke(Color.DARKORANGE);
+        else if (engine.getPlayer().isShielded()) token1.setStroke(Color.GOLD);
+
+        if (engine.getOpponent().isFrozen()) token2.setStroke(Color.ALICEBLUE);
+        else if (engine.getOpponent().isConfused()) token2.setStroke(Color.DARKORANGE);
+        else if (engine.getOpponent().isShielded()) token2.setStroke(Color.GOLD);
+
+        visualCells[engine.getPlayer().getPosition()].getChildren().add(token1);
+        visualCells[engine.getOpponent().getPosition()].getChildren().add(token2);
+    }
+
+    private void showCustomPopup(String title, String msg) {
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.initStyle(javafx.stage.StageStyle.UNDECORATED);
+
+        Label titleLbl = new Label(title.toUpperCase());
+        titleLbl.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 15px; -fx-text-fill: #f1c40f;");
+        Label msgLbl = new Label(msg);
+        msgLbl.setStyle("-fx-font-family: 'Segoe UI'; -fx-text-fill: white; -fx-text-alignment: center;");
+        msgLbl.setWrapText(true);
+        
+        Button okBtn = new Button("OK");
+        okBtn.setPrefWidth(100);
+        okBtn.setStyle("-fx-background-color: #f1c40f; -fx-text-fill: #111424; -fx-font-weight: bold; -fx-background-radius: 15;");
+        okBtn.setOnAction(e -> window.close());
+
+        VBox layout = new VBox(20, titleLbl, msgLbl, okBtn);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(25));
+        layout.setStyle("-fx-background-color: #1a1c2e; -fx-border-color: #f1c40f; -fx-border-width: 2; -fx-background-radius: 10; -fx-border-radius: 10;");
+
+        window.setScene(new Scene(layout, 350, 180));
+        window.showAndWait();
+    }
+
+    private String getCellColor(int i) {
+        if (contains(Constants.SOCK_CELL_INDICES, i)) return "#d35400"; 
+        if (contains(Constants.CONVEYOR_CELL_INDICES, i)) return "#27ae60"; 
+        if (contains(Constants.CARD_CELL_INDICES, i)) return "#c0392b"; 
+        if (contains(Constants.MONSTER_CELL_INDICES, i)) return "#2980b9"; 
+        return (i % 2 != 0) ? "#6c5ce7" : "#2c3e50"; 
+    }
+
+    private boolean contains(int[] arr, int val) {
+        for (int i : arr) if (i == val) return true;
+        return false;
+    }
+}
