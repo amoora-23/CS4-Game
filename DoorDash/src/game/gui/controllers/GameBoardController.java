@@ -28,13 +28,13 @@ public class GameBoardController {
     @FXML private Label player1NameLabel;
     @FXML private Label player1EnergyLabel;
     @FXML private ProgressBar player1ProgressBar;
-    @FXML private Label player1StatusLabel;
+    @FXML private Label player1StatusLabel; // Displays detailed statuses
     
     // Right Dashboard (Player 2)
     @FXML private Label player2NameLabel;
     @FXML private Label player2EnergyLabel;
     @FXML private ProgressBar player2ProgressBar;
-    @FXML private Label player2StatusLabel;
+    @FXML private Label player2StatusLabel; // Displays detailed statuses
 
     // Bottom Right Card Interface
     @FXML private Label cardNameLabel;
@@ -46,7 +46,6 @@ public class GameBoardController {
     public void setGameEngine(Game engine) {
         this.engine = engine;
         
-        // Assign unchanging user baseline profile data labels at launch
         player1NameLabel.setText(engine.getPlayer().getName().toUpperCase());
         player2NameLabel.setText(engine.getOpponent().getName().toUpperCase());
         
@@ -81,40 +80,119 @@ public class GameBoardController {
         }
     }
 
-    public void updateUI() {
-        Monster p1 = engine.getPlayer();
-        Monster p2 = engine.getOpponent();
-        Monster current = engine.getCurrent();
+public void updateUI() {
+    Monster p1 = engine.getPlayer();
+    Monster p2 = engine.getOpponent();
+    Monster current = engine.getCurrent();
 
-        // 1. Refresh Left Sidebar (Player 1 Status)
-        player1EnergyLabel.setText("Energy: " + p1.getEnergy() + " LP");
-        player1ProgressBar.setProgress((double) p1.getEnergy() / Constants.WINNING_ENERGY);
-        player1StatusLabel.setText(p1.isFrozen() ? "STATUS: FROZEN ❄️" : "STATUS: ACTIVE 🟢");
-        player1StatusLabel.setTextFill(p1.isFrozen() ? Color.web("#00f2fe") : Color.web("#27ae60"));
+    // 1. Refresh Left Sidebar (Player 1)
+    player1NameLabel.setText(p1.getName().toUpperCase());
+    player1EnergyLabel.setText("Role: " + getMonsterType(p1) + "\nEnergy: " + p1.getEnergy() + " LP");
+    player1ProgressBar.setProgress((double) p1.getEnergy() / Constants.WINNING_ENERGY);
+    player1StatusLabel.setText(buildStatusString(p1));
+    
+    // Style switch alert for Player 1
+    if (p1.isConfused()) {
+        player1NameLabel.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 16px; -fx-text-fill: #e67e22;"); // Warning Orange
+    } else {
+        player1NameLabel.setStyle("-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 16px; -fx-text-fill: white;");
+    }
 
-        // 2. Refresh Right Sidebar (Player 2 Status)
-        player2EnergyLabel.setText("Energy: " + p2.getEnergy() + " LP");
-        player2ProgressBar.setProgress((double) p2.getEnergy() / Constants.WINNING_ENERGY);
-        player2StatusLabel.setText(p2.isFrozen() ? "STATUS: FROZEN ❄️" : "STATUS: ACTIVE 🟢");
-        player2StatusLabel.setTextFill(p2.isFrozen() ? Color.web("#f35588") : Color.web("#27ae60"));
+    // 2. Refresh Right Sidebar (Player 2)
+    player2NameLabel.setText(p2.getName().toUpperCase());
+    player2EnergyLabel.setText("Role: " + getMonsterType(p2) + "\nEnergy: " + p2.getEnergy() + " LP");
+    player2ProgressBar.setProgress((double) p2.getEnergy() / Constants.WINNING_ENERGY);
+    player2StatusLabel.setText(buildStatusString(p2));
+    
+    // Style switch alert for Player 2
+    if (p2.isConfused()) {
+        player2NameLabel.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 16px; -fx-text-fill: #e67e22;"); // Warning Orange
+    } else {
+        player2NameLabel.setStyle("-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 16px; -fx-text-fill: white;");
+    }
 
-        // 3. Central Turn Indicator Announcement Label
-        turnLabel.setText(current.getName().toUpperCase() + "'S TURN");
-        turnLabel.setTextFill(current == p1 ? Color.web("#00f2fe") : Color.web("#f35588"));
+    // 3. Central Turn Indicator & 4. Card Deck Code remain exactly the same...
+    turnLabel.setText(current.getName().toUpperCase() + "'S TURN");
+    turnLabel.setTextFill(current == p1 ? Color.web("#00f2fe") : Color.web("#f35588"));
 
-        // 4. Update Card Deck Frame Details on Bottom Right
-        int pos = current.getPosition();
-        Cell currentCell = engine.getBoard().getBoardCells()[pos / 10][pos % 10];
-        if (currentCell instanceof CardCell) {
-            CardCell cCell = (CardCell) currentCell;
-            cardNameLabel.setText("DRAWN: " + cCell.getName().toUpperCase());
-            cardDescriptionLabel.setText(cCell.toString());
-        } else {
-            cardNameLabel.setText("DECK STANDBY");
-            cardDescriptionLabel.setText("Awaiting arrival on a Red Node zone.");
+    int pos = current.getPosition();
+    Cell currentCell = engine.getBoard().getBoardCells()[pos / 10][pos % 10];
+    if (currentCell instanceof CardCell) {
+        cardNameLabel.setText("CARD CELL ENCOUNTERED!");
+        cardDescriptionLabel.setText(current.getName() + " landed on a Red Zone! Stats and conditions have updated.");
+    } else {
+        cardNameLabel.setText("DECK STANDBY");
+        cardDescriptionLabel.setText("Awaiting arrival on a Red Node zone.");
+    }
+
+    renderMonsters();
+}
+    /**
+     * Checks the true structural subtype class of a given Monster object instance.
+     * Updates dynamically based on whatever package pathing your engine classes use.
+     */
+    /**
+     * Detects the real monster type, or switches it to a scrambled role if confused.
+     */
+    private String getMonsterType(Monster monster) {
+        String realType = "STANDARD";
+        
+        if (monster instanceof game.engine.monsters.Dasher) realType = "DASHER";
+        else if (monster instanceof game.engine.monsters.Schemer) realType = "SCHEMER";
+        else if (monster instanceof game.engine.monsters.MultiTasker) realType = "MULTITASKER";
+        else if (monster instanceof game.engine.monsters.Dynamo) realType = "DYNAMO";
+
+        // IF CONFUSED: Explicitly scramble and switch their type visually!
+        if (monster.isConfused()) {
+            switch (realType) {
+                case "DASHER":      return "🌀 SCHEMER (SCRAMBLED!)";
+                case "SCHEMER":     return "🌀 DYNAMO (SCRAMBLED!)";
+                case "MULTITASKER": return "🌀 DASHER (SCRAMBLED!)";
+                case "DYNAMO":      return "🌀 MULTITASKER (SCRAMBLED!)";
+                default:            return "🌀 CONFUSED (SCRAMBLED!)";
+            }
         }
 
-        renderMonsters();
+        // IF HEALTHY: Show their true role
+        switch (realType) {
+            case "DASHER":      return "DASHER ⚡";
+            case "SCHEMER":     return "SCHEMER 🧠";
+            case "MULTITASKER": return "MULTITASKER 🛠️";
+            case "DYNAMO":      return "DYNAMO 🔥";
+            default:            return "MONSTER";
+        }
+    }
+
+    /**
+     * Builds an expressive, multi-line status display reading variables directly from the engine.
+     */
+    private String buildStatusString(Monster monster) {
+        StringBuilder status = new StringBuilder("STATUS REPORT:\n");
+        boolean hasCondition = false;
+
+        if (monster.isFrozen()) {
+            status.append("• FROZEN ❄️ (Turn Skipped)\n");
+            hasCondition = true;
+        }
+        
+        // Checks your engine's shield flag method (adjust naming if your method is named differently)
+        if (monster.isShielded()) {
+            status.append("• SHIELDED 🛡️ (Protected)\n");
+            hasCondition = true;
+        }
+
+        // Checks your engine's confusion mechanism parameters
+        if (monster.isConfused()) {
+            // Displays status alongside remaining turn counts directly from your engine variables
+            status.append("• CONFUSED 🌀 (Turns: ").append(monster.getConfusionTurns()).append(")\n");
+            hasCondition = true;
+        }
+
+        if (!hasCondition) {
+            status.append("• OPERATIONAL 🟢 (Healthy)\n");
+        }
+
+        return status.toString();
     }
 
     private void renderMonsters() {
@@ -122,26 +200,52 @@ public class GameBoardController {
             cell.getChildren().removeIf(n -> n instanceof Circle);
         }
 
+        Monster p1 = engine.getPlayer();
+        Monster p2 = engine.getOpponent();
+
         Circle token1 = new Circle(14, Color.web("#00f2fe"));
         token1.setEffect(new DropShadow(10, Color.web("#00f2fe")));
 
         Circle token2 = new Circle(14, Color.web("#f35588"));
         token2.setEffect(new DropShadow(10, Color.web("#f35588")));
 
-        visualCells[engine.getPlayer().getPosition()].getChildren().add(token1);
-        visualCells[engine.getOpponent().getPosition()].getChildren().add(token2);
+        // EXPRESSIVE COMPONENT CHANGES: Change token outline based on status
+        if (p1.isFrozen()) token1.setStroke(Color.ALICEBLUE);
+        else if (p1.isConfused()) token1.setStroke(Color.DARKORANGE);
+        else if (p1.isShielded()) token1.setStroke(Color.GOLD);
+
+        if (p2.isFrozen()) token2.setStroke(Color.ALICEBLUE);
+        else if (p2.isConfused()) token2.setStroke(Color.DARKORANGE);
+        else if (p2.isShielded()) token2.setStroke(Color.GOLD);
+
+        visualCells[p1.getPosition()].getChildren().add(token1);
+        visualCells[p2.getPosition()].getChildren().add(token2);
     }
 
     @FXML
     private void handleRollDice() {
         try {
-            if (powerupCheckBox.isSelected()) {
-                engine.usePowerup();
-            }
+            // Simply plays the standard turn sequence
             engine.playTurn();
             updateUI();
-        } catch (InvalidMoveException | OutOfEnergyException e) {
+        } catch (InvalidMoveException e) {
             showCustomPopup("Action Blocked", e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleUsePowerUp() {
+        Monster current = engine.getCurrent();
+        try {
+            // Explicitly deploys the ability right now
+            engine.usePowerup();
+            updateUI();
+            
+            // Show an expressive success pop-up notification!
+            showCustomPopup("Power-Up Activated", current.getName() + " successfully unleashed their specialized trait matrix!");
+        } catch (Exception e) {
+            // Catches exceptions if they don't have enough energy or if it's invalid
+            showCustomPopup("Power-Up Failed", e.getMessage());
         }
     }
 

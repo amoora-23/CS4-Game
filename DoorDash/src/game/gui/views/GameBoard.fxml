@@ -26,12 +26,17 @@
             <GridPane fx:id="gameBoardGrid" alignment="CENTER" minWidth="600.0" minHeight="600.0" style="-fx-background-color: #1a1c2e; -fx-padding: 12; -fx-background-radius: 12;">
                </GridPane>
             
-            <HBox alignment="CENTER" spacing="30.0" style="-fx-padding: 10 0 0 0;">
-               <children>
-                  <Button onAction="#handleRollDice" prefHeight="45.0" prefWidth="180.0" style="-fx-background-color: #2ecc71; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 20; -fx-cursor: hand;" text="🎲 ROLL DICE" />
-                  <CheckBox fx:id="powerupCheckBox" text="DEPLOY POWER-UP" textFill="WHITE" style="-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 12px; -fx-cursor: hand;" />
-               </children>
-            </HBox>
+            <HBox alignment="CENTER" spacing="25.0" style="-fx-padding: 15 0 0 0;">
+   <children>
+      <Button onAction="#handleRollDice" prefHeight="45.0" prefWidth="180.0" 
+              style="-fx-background-color: #2ecc71; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 20; -fx-cursor: hand;" 
+              text="🎲 ROLL DICE" />
+              
+      <Button onAction="#handleUsePowerUp" prefHeight="45.0" prefWidth="180.0" 
+              style="-fx-background-color: #f1c40f; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 20; -fx-cursor: hand;" 
+              text="⚡ USE POWER-UP" />
+   </children>
+</HBox>
          </children>
       </VBox>
    </center>
