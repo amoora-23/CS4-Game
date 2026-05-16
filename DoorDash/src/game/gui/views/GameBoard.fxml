@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane minWidth="1200.0" minHeight="750.0" prefHeight="800.0" prefWidth="1280.0" style="-fx-background-color: #111424;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="game.gui.controllers.GameBoardController">
+   
+   <left>
+      <VBox minWidth="240.0" prefWidth="240.0" spacing="15.0" style="-fx-background-color: #0b0d19; -fx-padding: 25; -fx-border-color: rgba(0,242,254,0.1); -fx-border-width: 0 1 0 0;">
+         <children>
+            <Label text="YOUR MONITOR" textFill="#00f2fe" style="-fx-font-family: 'Segoe UI Black'; -fx-font-size: 14px; -fx-letter-spacing: 1px;" />
+            <Separator opacity="0.2" />
+            <Label fx:id="player1NameLabel" text="Player 1" textFill="WHITE" style="-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 16px;" />
+            <Label fx:id="player1EnergyLabel" text="Energy: 0 LP" textFill="#94a3b8" />
+            <ProgressBar fx:id="player1ProgressBar" prefWidth="190.0" progress="0.0" style="-fx-accent: #00f2fe;" />
+            <Label fx:id="player1StatusLabel" text="Status: Active" textFill="#27ae60" style="-fx-font-size: 12px;" />
+         </children>
+      </VBox>
+   </left>
+
+   <center>
+      <VBox alignment="CENTER" spacing="20.0" style="-fx-padding: 20;">
+         <children>
+            <Label fx:id="turnLabel" text="PLAYER 1 TURN" textFill="#f1c40f" style="-fx-font-family: 'Segoe UI Black'; -fx-font-size: 18px; -fx-letter-spacing: 1.5px;" />
+            
+            <GridPane fx:id="gameBoardGrid" alignment="CENTER" minWidth="600.0" minHeight="600.0" style="-fx-background-color: #1a1c2e; -fx-padding: 12; -fx-background-radius: 12;">
+               </GridPane>
+            
+            <HBox alignment="CENTER" spacing="30.0" style="-fx-padding: 10 0 0 0;">
+               <children>
+                  <Button onAction="#handleRollDice" prefHeight="45.0" prefWidth="180.0" style="-fx-background-color: #2ecc71; -fx-text-fill: #111424; -fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-background-radius: 20; -fx-cursor: hand;" text="🎲 ROLL DICE" />
+                  <CheckBox fx:id="powerupCheckBox" text="DEPLOY POWER-UP" textFill="WHITE" style="-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 12px; -fx-cursor: hand;" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+
+   <right>
+      <VBox minWidth="240.0" prefWidth="240.0" spacing="15.0" style="-fx-background-color: #0b0d19; -fx-padding: 25; -fx-border-color: rgba(243,85,136,0.1); -fx-border-width: 0 0 0 1;">
+         <children>
+            <Label text="OPPONENT MONITOR" textFill="#f35588" style="-fx-font-family: 'Segoe UI Black'; -fx-font-size: 14px; -fx-letter-spacing: 1px;" />
+            <Separator opacity="0.2" />
+            <Label fx:id="player2NameLabel" text="Player 2" textFill="WHITE" style="-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 16px;" />
+            <Label fx:id="player2EnergyLabel" text="Energy: 0 LP" textFill="#94a3b8" />
+            <ProgressBar fx:id="player2ProgressBar" prefWidth="190.0" progress="0.0" style="-fx-accent: #f35588;" />
+            <Label fx:id="player2StatusLabel" text="Status: Active" textFill="#27ae60" style="-fx-font-size: 12px;" />
+            
+            <VBox VBox.vgrow="ALWAYS" />
+            
+            <VBox spacing="10" style="-fx-padding: 10 0 0 0;">
+               <children>
+                  <VBox alignment="CENTER" spacing="8" style="-fx-border-color: #c0392b; -fx-border-width: 2; -fx-padding: 12; -fx-background-color: #1a1c2e; -fx-background-radius: 6; -fx-border-radius: 6;">
+                     <children>
+                        <Label text="FACTORY DECK" textFill="#c0392b" style="-fx-font-family: 'Segoe UI Black'; -fx-font-size: 11px;" />
+                        <StackPane prefHeight="70.0" prefWidth="50.0" style="-fx-background-color: #962d22; -fx-border-color: rgba(255,255,255,0.3); -fx-background-radius: 4; -fx-border-radius: 4;" />
+                     </children>
+                  </VBox>
+                  
+                  <VBox spacing="6" style="-fx-background-color: #111424; -fx-padding: 10; -fx-border-color: #f1c40f; -fx-border-width: 1; -fx-background-radius: 6; -fx-border-radius: 6;">
+                     <children>
+                        <Label fx:id="cardNameLabel" text="DECK SECURED" textFill="#f1c40f" style="-fx-font-family: 'Segoe UI Black'; -fx-font-size: 11px;" />
+                        <Label fx:id="cardDescriptionLabel" text="Awaiting Card Cell land register event." textFill="#94a3b8" wrapText="true" style="-fx-font-size: 11px; -fx-line-spacing: 1.1;" />
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </right>
+</BorderPane>

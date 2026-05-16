@@ -1,0 +1,35 @@
+/* General Background */
+.root {
+    -fx-background-color: #1a1a2e;
+}
+
+/* The 10x10 Grid Cells */
+.game-cell {
+    -fx-border-color: #34495e;
+    -fx-border-width: 1;
+    -fx-alignment: center;
+}
+
+/* Specific Cell Colors based on Constants [cite: 100-102] */
+.cell-door { -fx-background-color: #9b59b6; }      /* Purple */
+.cell-sock { -fx-background-color: #e67e22; }      /* 2319 Orange */
+.cell-belt { -fx-background-color: #2ecc71; }      /* Green */
+.cell-card { -fx-background-color: #e74c3c; }      /* Red */
+.cell-monster { -fx-background-color: #3498db; }   /* Blue */
+.cell-rest { -fx-background-color: #f1c40f; }      /* Yellow */
+
+/* Buttons */
+.button {
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-brightness: 1.2;
+}
+
+/* Energy Bar */
+.progress-bar .bar {
+    -fx-background-color: #f1c40f; /* Scream Canister Yellow */
+}
