@@ -19,7 +19,8 @@ public class Main extends Application {
         scene.getStylesheets().add(getClass().getResource("/game/gui/views/style.css").toExternalForm());
         
         primaryStage.setScene(scene);
-        primaryStage.setFullScreen(true); // Fullscreen is often a requirement for "Aesthetic" grades
+        primaryStage.setMinWidth(1300); 
+        primaryStage.setMinHeight(1000);
         primaryStage.show();
     }
 

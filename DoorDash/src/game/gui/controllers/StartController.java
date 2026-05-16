@@ -69,19 +69,19 @@ public class StartController {
 
         // Populate dynamic values based on the choice
         if (isScarerSelected) {
-            lblUserName.setText("JAMES P. SULLIVAN (SULLEY)");
+            lblUserName.setText("A7A");
             lblUserType.setText("ARCHETYPE CLASS: DASHER");
             lblUserEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
 
-            lblOppName.setText("MIKE WAZOWSKI");
+            lblOppName.setText("YA BDANNNYYYYYY");
             lblOppType.setText("ARCHETYPE CLASS: SCHEMER");
             lblOppEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
         } else {
-            lblUserName.setText("MIKE WAZOWSKI");
+            lblUserName.setText("YA BDANNNYYYYYY");
             lblUserType.setText("ARCHETYPE CLASS: SCHEMER");
             lblUserEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
 
-            lblOppName.setText("JAMES P. SULLIVAN (SULLEY)");
+            lblOppName.setText("A7A");
             lblOppType.setText("ARCHETYPE CLASS: DASHER");
             lblOppEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
         }
@@ -121,7 +121,6 @@ public class StartController {
             scene.getStylesheets().add(css);
             
             stage.setScene(scene);
-            stage.setFullScreen(true);
             stage.show();
 
         } catch (IOException e) {
