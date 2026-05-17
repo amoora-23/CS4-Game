@@ -7,13 +7,18 @@ import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.event.ActionEvent;
 
 import java.io.IOException;
 
 import game.engine.Game;
+import game.engine.monsters.Dasher;
+import game.engine.monsters.Dynamo;
 import game.engine.monsters.Monster;
+import game.engine.monsters.MultiTasker;
+import game.engine.monsters.Schemer;
 
 public class GameOverController {
 
@@ -21,7 +26,6 @@ public class GameOverController {
     @FXML private Label winnerRoleLabel;
     @FXML private Label winnerEnergyLabel;
 
-    // Both monsters' final energies
     @FXML private Label player1FinalLabel;
     @FXML private Label player2FinalLabel;
 
@@ -29,25 +33,39 @@ public class GameOverController {
     @FXML private Button restartBtn;
     @FXML private Button exitBtn;
 
+    // FIX #4: Extra labels for personalised winner display
+    @FXML private Label winnerTaglineLabel;
+    @FXML private Label winnerBannerLabel;
+    @FXML private VBox  winnerHighlightBox;
+
+    // Held for restart navigation
+    private Game engine;
+
     @FXML
     public void initialize() {
         styleButton(restartBtn, "#3498db");
         styleButton(exitBtn, "#e74c3c");
     }
 
-    public void setEndgameState(Game engine) {
+    /**
+     * FIX #4: New overloaded entry point — takes explicit winner reference.
+     * Called by GameBoardController with the actual winning Monster.
+     */
+    public void setEndgameState(Game engine, Monster winner) {
+        this.engine = engine;
         if (engine == null) return;
 
-        Monster winner   = engine.getWinner();
         Monster player   = engine.getPlayer();
         Monster opponent = engine.getOpponent();
 
-        if (winner != null) {
-            winnerNameLabel.setText("🏆  " + winner.getName().toUpperCase());
-            winnerRoleLabel.setText("ROLE: " + winner.getOriginalRole().name()
-                    + "   |   TYPE: " + getTypeName(winner));
-            winnerEnergyLabel.setText("Final Energy: " + winner.getEnergy());
-        }
+        // ── Personalise based on winner type ────────────────────────────────
+        applyWinnerPersonalisation(winner);
+
+        // Winner block
+        winnerNameLabel.setText("🏆  " + winner.getName().toUpperCase());
+        winnerRoleLabel.setText("ROLE: " + winner.getOriginalRole().name()
+                + "   |   TYPE: " + getTypeName(winner));
+        winnerEnergyLabel.setText("Final Energy: " + winner.getEnergy());
 
         // Both monsters
         player1FinalLabel.setText(player.getName() + ":  " + player.getEnergy() + " energy"
@@ -56,6 +74,98 @@ public class GameOverController {
                 + (opponent == winner ? "  🏆" : ""));
 
         resultMessageLabel.setText("Reached cell 99 with ≥ 1000 energy — TOUCHDOWN!");
+    }
+
+    /**
+     * Legacy no-winner overload (called from old code paths or when winner is unknown).
+     * Delegates to the new method, picking whichever monster met the win condition.
+     */
+    public void setEndgameState(Game engine) {
+        if (engine == null) return;
+        Monster winner = engine.getWinner();
+        if (winner == null) winner = engine.getPlayer(); // fallback
+        setEndgameState(engine, winner);
+    }
+
+    // ── FIX #4: Winner personalisation ──────────────────────────────────────────
+    /**
+     * Applies character-specific colours, taglines, and style accents to the
+     * win screen based on who won. All changes are CSS-only (no FXML edits needed
+     * for basic personalisation; the label content drives the difference).
+     */
+    private void applyWinnerPersonalisation(Monster winner) {
+        String accentColor;
+        String bgGlow;
+        String tagline;
+        String banner;
+        String borderColor;
+
+        if (winner instanceof Dasher) {
+            accentColor = "#00f2fe";
+            bgGlow      = "#00f2fe20";
+            tagline     = "💨 Speed was the key — no one could keep up!";
+            banner      = "⚡ MOMENTUM CHAMPION";
+            borderColor = "#00f2fe";
+        } else if (winner instanceof Dynamo) {
+            accentColor = "#e74c3c";
+            bgGlow      = "#e74c3c20";
+            tagline     = "🔥 Raw power and dominance — the floor shook!";
+            banner      = "🔥 POWERHOUSE VICTOR";
+            borderColor = "#e74c3c";
+        } else if (winner instanceof MultiTasker) {
+            accentColor = "#2ecc71";
+            bgGlow      = "#2ecc7120";
+            tagline     = "🛠️ Efficiency and focus — every move counted!";
+            banner      = "🎯 STRATEGIC MASTER";
+            borderColor = "#2ecc71";
+        } else if (winner instanceof Schemer) {
+            accentColor = "#9b59b6";
+            bgGlow      = "#9b59b620";
+            tagline     = "🧠 Cunning triumphed — the plan worked perfectly!";
+            banner      = "🧠 GRAND SCHEMER WINS";
+            borderColor = "#9b59b6";
+        } else {
+            accentColor = "#f1c40f";
+            bgGlow      = "#f1c40f20";
+            tagline     = "Victory belongs to the bold!";
+            banner      = "🏆 WINNER";
+            borderColor = "#f1c40f";
+        }
+
+        // Apply accent colour to the winner name
+        winnerNameLabel.setStyle(
+            "-fx-font-family: 'Segoe UI Black'; -fx-font-size: 32px; " +
+            "-fx-text-fill: " + accentColor + ";"
+        );
+
+        // Apply to the winner highlight box border
+        if (winnerHighlightBox != null) {
+            winnerHighlightBox.setStyle(
+                "-fx-background-color: #0b0d19; -fx-padding: 28; " +
+                "-fx-background-radius: 12; -fx-border-color: " + borderColor + "; " +
+                "-fx-border-width: 2; -fx-border-radius: 12; -fx-min-width: 500;"
+            );
+        }
+
+        // Set personalised tagline and banner
+        if (winnerTaglineLabel != null) {
+            winnerTaglineLabel.setText(tagline);
+            winnerTaglineLabel.setStyle(
+                "-fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 14px; " +
+                "-fx-text-fill: " + accentColor + "; -fx-font-style: italic;"
+            );
+        }
+
+        if (winnerBannerLabel != null) {
+            winnerBannerLabel.setText(banner);
+            winnerBannerLabel.setStyle(
+                "-fx-font-family: 'Segoe UI Black'; -fx-font-size: 16px; " +
+                "-fx-text-fill: " + accentColor + "; -fx-letter-spacing: 2px;"
+            );
+        }
+
+        // Style the restart button with the winner's accent colour
+        styleButton(restartBtn, accentColor);
     }
 
     @FXML
@@ -89,16 +199,15 @@ public class GameOverController {
     }
 
     private String getTypeName(Monster m) {
-        if (m instanceof game.engine.monsters.Dasher)      return "Dasher";
-        if (m instanceof game.engine.monsters.Dynamo)      return "Dynamo";
-        if (m instanceof game.engine.monsters.MultiTasker) return "MultiTasker";
-        if (m instanceof game.engine.monsters.Schemer)     return "Schemer";
+        if (m instanceof Dasher)      return "Dasher";
+        if (m instanceof Dynamo)      return "Dynamo";
+        if (m instanceof MultiTasker) return "MultiTasker";
+        if (m instanceof Schemer)     return "Schemer";
         return "Monster";
     }
-    
+
     @FXML
     private void handleCloseWindow() {
-        // Option A: close just this window
         Stage stage = (Stage) restartBtn.getScene().getWindow();
         stage.close();
     }

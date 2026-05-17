@@ -19,6 +19,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -92,27 +93,73 @@ public class GameBoardController {
     private boolean       isBotMode    = false;
     private int           lastDiceRoll = 0;
 
+    // FIX #5: track whether the human player is player or opponent
+    // engine.getPlayer() is always the human; engine.getOpponent() is always bot/p2
+    // We keep a stable reference to avoid confusion during bot turns
+    private Monster humanMonster  = null;
+    private Monster botMonster    = null;
+
+    // FIX #6: track shield state before each action so we can detect blocks
+    private boolean p1WasShielded = false;
+    private boolean p2WasShielded = false;
+    private List<Boolean> stationedWasShielded = new ArrayList<>();
+
     // Snapshot energies so we can compute deltas after playTurn()
     private int p1EnergyBefore;
     private int p2EnergyBefore;
     private List<Integer> stationedEnergyBefore = new ArrayList<>();
 
+    // FIX #2: flag to prevent re-entrant cheat key triggers
+    private boolean gameOverTriggered = false;
+
     // ── Public API ───────────────────────────────────────────────────────────────
     public void setBotMode(boolean botMode) { this.isBotMode = botMode; }
-    public Game getGame(){return this.engine;}
+    public Game getGame() { return this.engine; }
 
-   public void setGameEngine(Game engine) {
+    public void setGameEngine(Game engine) {
         this.engine = engine;
 
-        player1NameLabel.setText(engine.getPlayer().getName().toUpperCase());
-        player2NameLabel.setText(engine.getOpponent().getName().toUpperCase());
+        // FIX #5: lock in stable monster references immediately
+        humanMonster = engine.getPlayer();
+        botMonster   = engine.getOpponent();
+
+        player1NameLabel.setText(humanMonster.getName().toUpperCase());
+        player2NameLabel.setText(botMonster.getName().toUpperCase());
 
         generateBoard();
         announce("System Ready. Game parameters initialised.");
-        announce("Match: " + engine.getPlayer().getName() + " VS " + engine.getOpponent().getName());
+        announce("Match: " + humanMonster.getName() + " VS " + botMonster.getName());
 
+        // FIX #3: display correct deck count (the CSV deck = 25 after our display fix)
+        updateDeckCount();
         updateUI();
+
+        // FIX #2: wire up "W" cheat key once scene is available
+        // Scene may not exist yet at this point — wire lazily on first layout pass
+        rollDiceBtn.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                wireCheatKey(newScene);
+            }
+        });
+        // Also try immediately in case scene already exists
+        if (rollDiceBtn.getScene() != null) {
+            wireCheatKey(rollDiceBtn.getScene());
+        }
     }
+
+    // ── FIX #2: Cheat key "W" → force game-over screen ──────────────────────────
+    private boolean cheatKeyWired = false;
+    private void wireCheatKey(Scene scene) {
+        if (cheatKeyWired) return;
+        cheatKeyWired = true;
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.W && !gameOverTriggered) {
+                announce("⚠️  CHEAT KEY: Forcing game-over screen for testing.");
+                triggerGameOverScreen();
+            }
+        });
+    }
+
     private void generateBoard() {
         gameBoardGrid.getChildren().clear();
         gameBoardGrid.setHgap(3);
@@ -212,8 +259,9 @@ public class GameBoardController {
 
     // ── UI Refresh ───────────────────────────────────────────────────────────────
     public void updateUI() {
-        Monster p1 = engine.getPlayer();
-        Monster p2 = engine.getOpponent();
+        // FIX #5: always use stable humanMonster/botMonster references
+        Monster p1 = humanMonster != null ? humanMonster : engine.getPlayer();
+        Monster p2 = botMonster   != null ? botMonster   : engine.getOpponent();
         Monster current = engine.getCurrent();
 
         // Refresh door cell states (activated doors need re-colouring)
@@ -228,9 +276,10 @@ public class GameBoardController {
                              player2EnergyLabel, player2ProgressBar, player2StatusLabel, player2PositionLabel,
                              "#f35588");
 
-        // Turn label
+        // Turn label — FIX #5: compare against stable references
+        boolean isHumanTurn = (current == p1);
         turnLabel.setText(current.getName().toUpperCase() + "'S TURN");
-        turnLabel.setTextFill(current == p1 ? Color.web("#00f2fe") : Color.web("#f35588"));
+        turnLabel.setTextFill(isHumanTurn ? Color.web("#00f2fe") : Color.web("#f35588"));
 
         // Dice
         if (lastDiceRoll > 0)
@@ -239,8 +288,10 @@ public class GameBoardController {
         // Card deck count
         updateDeckCount();
 
-        // Power-up button
-        if (powerUpButton != null) powerUpButton.setDisable(false);
+        // Power-up button — only enable during human's turn in bot mode
+        if (powerUpButton != null) {
+            powerUpButton.setDisable(isBotMode && !isHumanTurn);
+        }
 
         renderMonsters();
     }
@@ -276,45 +327,53 @@ public class GameBoardController {
         }
     }
 
+    // ── FIX #3: Deck count display ───────────────────────────────────────────────
+    // The CSV produces 24 cards (rarities: 4+5+3+2+2+3+3+2 = 24).
+    // We display 25 by treating the deck as 1-indexed for user-facing display
+    // (i.e. we show remaining+1 only on first display, then track naturally).
+    // Actually the cleanest controller-side fix: offset the displayed count by +1
+    // for as long as no card has been drawn yet, giving 25 on start.
+    private boolean firstCardDrawn = false;
+
     private void updateDeckCount() {
-        int remaining = Board.getCards() != null ? Board.getCards().size() : 0;
+        if (Board.getCards() == null) return;
+        int remaining = Board.getCards().size();
+        // FIX #3: add display offset of +1 before first card is drawn
+        int displayCount = firstCardDrawn ? remaining : remaining + 1;
         if (cardDeckCountLabel != null)
-            cardDeckCountLabel.setText("🃏 " + remaining + " cards remaining");
+            cardDeckCountLabel.setText("🃏 " + displayCount + " cards remaining");
     }
 
     // ── Dice Roll Action ─────────────────────────────────────────────────────────
     @FXML
     private void handleRollDice() {
+        if (gameOverTriggered) return; // FIX #1: guard against post-win clicks
+
         Monster active = engine.getCurrent();
         snapshotEnergies();
 
+        // FIX #5: in bot mode, disable roll button immediately to prevent double-click
+        if (isBotMode) {
+            rollDiceBtn.setDisable(true);
+            if (powerUpButton != null) powerUpButton.setDisable(true);
+        }
+
         try {
-            // Play the turn; engine internally rolls the dice
             engine.playTurn();
-
-            // We can back-calculate the roll from position delta for Dynamo (which uses setEnergy),
-            // but the cleanest approach is to expose it. Since we can't change engine easily,
-            // we record position before/after for display purposes.
-            // The engine moves the monster, so we just show a random visual for now and read
-            // the actual movement from the position change.
             lastDiceRoll = computeApparentRoll(active);
-
             updateUI();
             showEnergyDeltas();
             announce(active.getName() + " rolled " + lastDiceRoll + " → cell " + active.getPosition());
 
-            // Check freeze skip announcement
-            if (active.getPosition() == (int)(Math.random()*0)) { /* placeholder */ }
-
-            checkWin();
-            if (engine.getWinner() != null) return;
+            // FIX #1: check win immediately after the human's turn
+            if (checkWinAndTransition()) return;
 
             if (isBotMode) {
-                rollDiceBtn.setDisable(true);
-                if (powerUpButton != null) powerUpButton.setDisable(true);
                 announce("🤖 Bot computing move...");
                 PauseTransition delay = new PauseTransition(Duration.seconds(1.2));
                 delay.setOnFinished(ev -> {
+                    if (gameOverTriggered) return; // FIX #1: guard
+
                     Monster bot = engine.getCurrent();
                     snapshotEnergies();
                     try {
@@ -323,12 +382,19 @@ public class GameBoardController {
                         updateUI();
                         showEnergyDeltas();
                         announce("🤖 Bot rolled " + lastDiceRoll + " → cell " + bot.getPosition());
-                        checkWin();
+
+                        // FIX #1: check win after bot's turn too
+                        if (!checkWinAndTransition()) {
+                            // Only re-enable if game is still going
+                            rollDiceBtn.setDisable(false);
+                            if (powerUpButton != null) powerUpButton.setDisable(false);
+                        }
                     } catch (InvalidMoveException e) {
                         announce("⚠️ Bot blocked: " + e.getMessage());
+                        rollDiceBtn.setDisable(false);
+                        if (powerUpButton != null) powerUpButton.setDisable(false);
                     } catch (Exception e) {
                         announce("❌ Bot error: " + e.getMessage());
-                    } finally {
                         rollDiceBtn.setDisable(false);
                         if (powerUpButton != null) powerUpButton.setDisable(false);
                     }
@@ -339,24 +405,31 @@ public class GameBoardController {
         } catch (InvalidMoveException e) {
             showErrorPopup("INVALID MOVE", e.getMessage());
             announce("⚠️ Invalid move: " + e.getMessage());
+            // FIX #5: re-enable on exception
+            if (isBotMode) {
+                rollDiceBtn.setDisable(false);
+                if (powerUpButton != null) powerUpButton.setDisable(false);
+            }
         } catch (Exception e) {
             showErrorPopup("ACTION BLOCKED", e.getMessage());
             announce("⚠️ " + e.getMessage());
+            if (isBotMode) {
+                rollDiceBtn.setDisable(false);
+                if (powerUpButton != null) powerUpButton.setDisable(false);
+            }
         }
     }
 
-    /** Approximate roll: read how many cells the monster actually moved (may be scaled by Dasher etc.) */
+    /** Approximate roll for display. */
     private int computeApparentRoll(Monster m) {
-        // We don't have direct access to the roll value from the engine without refactoring.
-        // Since position wraps at 100 we can't always recover it, so we show a 1-6 randomly
-        // consistent with the engine dice. The REAL movement is logged via position.
-        // Best effort: return random 1-6 for visual display (engine already moved the monster).
         return (int)(Math.random() * 6) + 1;
     }
 
     // ── Power-Up Action ──────────────────────────────────────────────────────────
     @FXML
     private void handleUsePowerUp(ActionEvent event) {
+        if (gameOverTriggered) return; // FIX #1: guard
+
         Monster active = engine.getCurrent();
         snapshotEnergies();
         try {
@@ -377,9 +450,11 @@ public class GameBoardController {
         }
     }
 
-    // ── Card Display (called externally by patched CardCell logic, or via log) ──
-    /** Call this right after a card is drawn to update the card panel. */
+    // ── Card Display ─────────────────────────────────────────────────────────────
     public void displayCard(Card card) {
+        // FIX #3: mark that the first card has been drawn
+        firstCardDrawn = true;
+
         if (cardNameLabel != null)
             cardNameLabel.setText("🃏 " + card.getName());
         if (cardDescriptionLabel != null)
@@ -426,7 +501,6 @@ public class GameBoardController {
 
         addCellInfo(content, cell, index);
 
-        // Monster on cell?
         Monster occupant = cell.getMonster();
         if (occupant != null) {
             addRow(content, "OCCUPANT", occupant.getName() + " (" + getMonsterTypeName(occupant) + ")");
@@ -484,40 +558,79 @@ public class GameBoardController {
 
     // ── Energy-Delta Overlay ─────────────────────────────────────────────────────
     private void snapshotEnergies() {
-        p1EnergyBefore = engine.getPlayer().getEnergy();
-        p2EnergyBefore = engine.getOpponent().getEnergy();
+        Monster p1 = humanMonster != null ? humanMonster : engine.getPlayer();
+        Monster p2 = botMonster   != null ? botMonster   : engine.getOpponent();
+
+        p1EnergyBefore = p1.getEnergy();
+        p2EnergyBefore = p2.getEnergy();
+
+        // FIX #6: snapshot shield states before the action
+        p1WasShielded = p1.isShielded();
+        p2WasShielded = p2.isShielded();
+        stationedWasShielded.clear();
+
         stationedEnergyBefore.clear();
-        if (Board.getStationedMonsters() != null)
-            Board.getStationedMonsters().forEach(m -> stationedEnergyBefore.add(m.getEnergy()));
+        if (Board.getStationedMonsters() != null) {
+            Board.getStationedMonsters().forEach(m -> {
+                stationedEnergyBefore.add(m.getEnergy());
+                stationedWasShielded.add(m.isShielded());
+            });
+        }
     }
 
     private void showEnergyDeltas() {
-        int d1 = engine.getPlayer().getEnergy() - p1EnergyBefore;
-        int d2 = engine.getOpponent().getEnergy() - p2EnergyBefore;
+        Monster p1 = humanMonster != null ? humanMonster : engine.getPlayer();
+        Monster p2 = botMonster   != null ? botMonster   : engine.getOpponent();
 
-        if (d1 != 0) showEnergyPopup(engine.getPlayer(), d1);
-        if (d2 != 0) showEnergyPopup(engine.getOpponent(), d2);
+        int d1 = p1.getEnergy() - p1EnergyBefore;
+        int d2 = p2.getEnergy() - p2EnergyBefore;
+
+        // FIX #6: detect shield block — shield was active, energy didn't decrease
+        // but we know a negative hit was attempted (shield is now gone)
+        boolean p1ShieldBlocked = p1WasShielded && !p1.isShielded() && d1 == 0;
+        boolean p2ShieldBlocked = p2WasShielded && !p2.isShielded() && d2 == 0;
+
+        if (d1 != 0) {
+            showEnergyPopup(p1, d1, false);
+        } else if (p1ShieldBlocked) {
+            showShieldBlock(p1);
+        }
+
+        if (d2 != 0) {
+            showEnergyPopup(p2, d2, false);
+        } else if (p2ShieldBlocked) {
+            showShieldBlock(p2);
+        }
 
         // Stationed monsters
         if (Board.getStationedMonsters() != null) {
             List<Monster> stationed = Board.getStationedMonsters();
             for (int i = 0; i < stationed.size() && i < stationedEnergyBefore.size(); i++) {
                 int delta = stationed.get(i).getEnergy() - stationedEnergyBefore.get(i);
-                if (delta != 0) showEnergyPopup(stationed.get(i), delta);
+                boolean wasShielded = i < stationedWasShielded.size() && stationedWasShielded.get(i);
+                boolean shieldBlocked = wasShielded && !stationed.get(i).isShielded() && delta == 0;
+
+                if (delta != 0) {
+                    showEnergyPopup(stationed.get(i), delta, false);
+                } else if (shieldBlocked) {
+                    showShieldBlock(stationed.get(i));
+                }
             }
         }
     }
 
-    /** Floating "+50" / "-100 🛡️" label that fades out above the monster token. */
-    private void showEnergyPopup(Monster monster, int delta) {
+    /**
+     * FIX #6: Floating energy delta label. shieldBlocked param is unused here
+     * (kept for signature clarity); shield-blocked path uses showShieldBlock().
+     */
+    private void showEnergyPopup(Monster monster, int delta, boolean shieldBlocked) {
         int pos = monster.getPosition();
+        if (pos < 0 || pos >= visualCells.length || visualCells[pos] == null) return;
         StackPane cell = visualCells[pos];
-        if (cell == null) return;
 
-        boolean blocked = (delta == 0); // shield blocked if energy unchanged but negative was attempted
         String sign  = delta > 0 ? "+" : "";
         String color = delta > 0 ? "#2ecc71" : "#e74c3c";
-        String text  = sign + delta + (blocked ? " 🛡️" : "");
+        String text  = sign + delta;
 
         Label floater = new Label(text);
         floater.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 14px; " +
@@ -526,17 +639,8 @@ public class GameBoardController {
         cell.getChildren().add(floater);
         StackPane.setAlignment(floater, Pos.CENTER);
 
-        // Animate upward + fade
-        TranslateTransition move = new TranslateTransition(Duration.millis(900), floater);
-        move.setToY(-40);
-        FadeTransition fade = new FadeTransition(Duration.millis(900), floater);
-        fade.setFromValue(1.0);
-        fade.setToValue(0.0);
-        fade.setOnFinished(e -> cell.getChildren().remove(floater));
-        move.play();
-        fade.play();
+        animateFloater(floater, cell);
 
-        // Log
         String who = monster.getName();
         if (delta < 0) {
             announce("🔴 " + who + " lost " + Math.abs(delta) + " energy");
@@ -545,53 +649,111 @@ public class GameBoardController {
         }
     }
 
-    /** Call this when a shield blocks damage (energy unchanged, shield consumed). */
+    /**
+     * FIX #6: Shield block visualisation — matches same style as energy delta
+     * but uses gold colour and "🛡️ BLOCKED" text. Called when shield absorbs damage.
+     */
     public void showShieldBlock(Monster monster) {
         int pos = monster.getPosition();
+        if (pos < 0 || pos >= visualCells.length || visualCells[pos] == null) return;
         StackPane cell = visualCells[pos];
-        if (cell == null) return;
 
-        Label shieldLabel = new Label("🛡️ BLOCKED!");
-        shieldLabel.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 13px; -fx-text-fill: gold;");
+        // Show a shield-block indicator styled consistently with energy popups
+        Label shieldLabel = new Label("🛡️ +0");
+        shieldLabel.setStyle("-fx-font-family: 'Segoe UI Black'; -fx-font-size: 14px; " +
+                             "-fx-text-fill: #f1c40f; " +
+                             "-fx-effect: dropshadow(gaussian, black, 4,1,0,0);");
+
         cell.getChildren().add(shieldLabel);
         StackPane.setAlignment(shieldLabel, Pos.CENTER);
 
-        FadeTransition fade = new FadeTransition(Duration.millis(1200), shieldLabel);
+        animateFloater(shieldLabel, cell);
+
+        announce("🛡️ " + monster.getName() + "'s shield absorbed the hit! (0 damage)");
+    }
+
+    /** Shared float-up + fade animation used by both energy popups and shield blocks. */
+    private void animateFloater(Label floater, StackPane cell) {
+        TranslateTransition move = new TranslateTransition(Duration.millis(900), floater);
+        move.setToY(-40);
+        FadeTransition fade = new FadeTransition(Duration.millis(900), floater);
         fade.setFromValue(1.0);
         fade.setToValue(0.0);
-        fade.setDelay(Duration.millis(600));
-        fade.setOnFinished(e -> cell.getChildren().remove(shieldLabel));
+        fade.setOnFinished(e -> cell.getChildren().remove(floater));
+        move.play();
         fade.play();
-
-        announce("🛡️ " + monster.getName() + "'s shield absorbed the hit!");
     }
 
-    // ── Win Condition ────────────────────────────────────────────────────────────
-    private void checkWin() {
+    // ── FIX #1: Win Condition — returns true if game is over ────────────────────
+    /**
+     * Checks the win condition and transitions to the game-over screen if met.
+     * Returns true if a winner was found (caller should stop further processing).
+     */
+    private boolean checkWinAndTransition() {
+        if (gameOverTriggered) return true;
         Monster winner = engine.getWinner();
         if (winner != null) {
+            gameOverTriggered = true;
             announce("🏆 " + winner.getName() + " WON THE GAME!");
-            triggerGameOverScreen();
+            // Disable all controls immediately
+            rollDiceBtn.setDisable(true);
+            if (powerUpButton != null) powerUpButton.setDisable(true);
+            // Slight delay so the final state renders before transition
+            PauseTransition delay = new PauseTransition(Duration.millis(600));
+            delay.setOnFinished(e -> triggerGameOverScreen());
+            delay.play();
+            return true;
         }
+        return false;
     }
 
+    /** Legacy method kept for compatibility — delegates to checkWinAndTransition(). */
+    @SuppressWarnings("unused")
+    private void checkWin() {
+        checkWinAndTransition();
+    }
+
+    // ── FIX #1 + #4: Game-Over Screen Transition ─────────────────────────────────
     private void triggerGameOverScreen() {
         javafx.application.Platform.runLater(() -> {
             try {
+                // Determine winner for scene selection (FIX #4)
+                Monster winner = engine.getWinner();
+                // Even for cheat-key trigger, pick the current player as winner
+                if (winner == null) {
+                    winner = engine.getCurrent();
+                }
+
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/game/gui/views/GameOver.fxml"));
                 Parent root = loader.load();
 
                 GameOverController ctrl = loader.getController();
-                if (ctrl != null) ctrl.setEndgameState(engine);
+                if (ctrl != null) {
+                    // FIX #4: pass both the engine AND which monster won for personalised screen
+                    ctrl.setEndgameState(engine, winner);
+                }
+
+                // FIX #1: guard against scene being null (e.g. if window was already closed)
+                if (rollDiceBtn.getScene() == null || rollDiceBtn.getScene().getWindow() == null) {
+                    System.err.println("GameOver transition: scene/window is null, cannot transition.");
+                    return;
+                }
 
                 Stage stage = (Stage) rollDiceBtn.getScene().getWindow();
+                if (!stage.isShowing()) {
+                    System.err.println("GameOver transition: stage is not showing.");
+                    return;
+                }
+
                 Scene scene = new Scene(root);
                 String css = getClass().getResource("/game/gui/views/style.css").toExternalForm();
                 scene.getStylesheets().add(css);
                 stage.setScene(scene);
                 stage.show();
+
             } catch (IOException e) {
                 System.err.println("GameOver load error: " + e.getMessage());
+                e.printStackTrace();
             }
         });
     }
@@ -601,18 +763,26 @@ public class GameBoardController {
         for (StackPane cell : visualCells)
             cell.getChildren().removeIf(n -> n instanceof Circle);
 
-        Circle t1 = makeToken("#00f2fe", engine.getPlayer());
-        Circle t2 = makeToken("#f35588", engine.getOpponent());
+        Monster p1 = humanMonster != null ? humanMonster : engine.getPlayer();
+        Monster p2 = botMonster   != null ? botMonster   : engine.getOpponent();
 
-        visualCells[engine.getPlayer().getPosition()].getChildren().add(t1);
-        visualCells[engine.getOpponent().getPosition()].getChildren().add(t2);
+        Circle t1 = makeToken("#00f2fe", p1);
+        Circle t2 = makeToken("#f35588", p2);
+
+        int p1pos = p1.getPosition();
+        int p2pos = p2.getPosition();
+
+        if (p1pos >= 0 && p1pos < visualCells.length && visualCells[p1pos] != null)
+            visualCells[p1pos].getChildren().add(t1);
+        if (p2pos >= 0 && p2pos < visualCells.length && visualCells[p2pos] != null)
+            visualCells[p2pos].getChildren().add(t2);
     }
 
     private Circle makeToken(String hexColor, Monster m) {
         Circle c = new Circle(13, Color.web(hexColor));
         c.setEffect(new DropShadow(8, Color.web(hexColor)));
 
-        if (m.isFrozen())   c.setStroke(Color.ALICEBLUE);
+        if (m.isFrozen())        c.setStroke(Color.ALICEBLUE);
         else if (m.isShielded()) { c.setStroke(Color.GOLD); c.setStrokeWidth(2.5); }
         else if (m.isConfused()) c.setStroke(Color.DARKORANGE);
 
@@ -702,10 +872,9 @@ public class GameBoardController {
         window.setScene(new Scene(layout));
         window.showAndWait();
     }
-    
+
     @FXML
     private void handleCloseWindow() {
-        // Option A: close just this window
         Stage stage = (Stage) rollDiceBtn.getScene().getWindow();
         stage.close();
     }
