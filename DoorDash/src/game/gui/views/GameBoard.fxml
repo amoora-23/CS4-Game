@@ -17,7 +17,17 @@
             style="-fx-background-color: #111424;"
             xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="game.gui.controllers.GameBoardController">
-
+<!-- Add this at the top of your BorderPane, before <left> -->
+	<top>
+	    <HBox alignment="CENTER_RIGHT" 
+	          style="-fx-background-color: #0b0d19; -fx-padding: 6 12 6 12;">
+	        <Button fx:id="closeBtn" onAction="#handleCloseWindow"
+	                text="✕"
+	                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8;
+	                       -fx-font-size: 16px; -fx-cursor: hand; -fx-border-color: none;"
+	                prefWidth="60" prefHeight="60"/>
+	    </HBox>
+	</top>
    <!-- ═══════════════════════ LEFT SIDEBAR (Player 1) ═══════════════════════ -->
    <left>
       <VBox minWidth="240.0" prefWidth="240.0" spacing="10.0"

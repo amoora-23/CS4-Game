@@ -95,4 +95,11 @@ public class GameOverController {
         if (m instanceof game.engine.monsters.Schemer)     return "Schemer";
         return "Monster";
     }
+    
+    @FXML
+    private void handleCloseWindow() {
+        // Option A: close just this window
+        Stage stage = (Stage) restartBtn.getScene().getWindow();
+        stage.close();
+    }
 }

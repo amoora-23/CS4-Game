@@ -117,6 +117,18 @@
             </HBox>
 
             <Button fx:id="commenceMatchBtn" onAction="#handleCommenceMatch" prefHeight="50.0" prefWidth="320.0" text="COMMENCE MATCH SEQUENCE" />
+            <Button onAction="#handleCloseWindow"
+        text="✕"
+        style="-fx-background-color: transparent; -fx-text-fill: #94a3b8;
+               -fx-font-size: 18px; -fx-cursor: hand;"
+        prefWidth="36" prefHeight="36">
+    <StackPane.alignment>
+        <javafx.geometry.Pos fx:constant="TOP_RIGHT"/>
+    </StackPane.alignment>
+    <StackPane.margin>
+        <javafx.geometry.Insets top="10" right="10"/>
+    </StackPane.margin>
+</Button>
          </children>
       </VBox>
       

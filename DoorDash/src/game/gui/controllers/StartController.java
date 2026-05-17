@@ -20,8 +20,11 @@ import java.io.IOException;
 
 import game.engine.Game;
 import game.engine.Role;
+import game.engine.monsters.*;
+import game.gui.controllers.*;
 
 public class StartController {
+	Game gameEngine;
 
     // Main Layout Panes
     @FXML private VBox mainMenuPane;
@@ -65,33 +68,59 @@ public class StartController {
      */
     @FXML
     private void handleStartGame(ActionEvent event) {
-        boolean isScarerSelected = scarerBtn.isSelected();
+        try{
+        	Role selectedRole = scarerBtn.isSelected() ? Role.SCARER : Role.LAUGHER;
+            boolean isScarerSelected = scarerBtn.isSelected();
+            gameEngine = new Game(selectedRole);
 
-        // Populate dynamic values based on the choice
-        if (isScarerSelected) {
-            lblUserName.setText("A7A");
-            lblUserType.setText("ARCHETYPE CLASS: DASHER");
-            lblUserEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+            // Populate dynamic values based on the choice
+            	Monster m = gameEngine.getPlayer();
+                String s = "";
+                if(m instanceof Dasher){
+                	s = "Dasher";
+                }
+                else if(m instanceof Dynamo){
+                	s = "Dynamo";
+                }
+                else if(m instanceof MultiTasker){
+                	s = "MultiTasker";
+                }
+                else{
+                	s = "Schemer";
+                }
+                lblUserName.setText(m.getName());
+                lblUserType.setText("ARCHETYPE CLASS: "+ s);
+                lblUserEnergy.setText("INITIAL POWER RESERVES: "+m.getEnergy());
 
-            lblOppName.setText("YA BDANNNYYYYYY");
-            lblOppType.setText("ARCHETYPE CLASS: SCHEMER");
-            lblOppEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
-        } else {
-            lblUserName.setText("YA BDANNNYYYYYY");
-            lblUserType.setText("ARCHETYPE CLASS: SCHEMER");
-            lblUserEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+                m = gameEngine.getOpponent();
+                s = "";
+                if(m instanceof Dasher){
+                	s = "Dasher";
+                }
+                else if(m instanceof Dynamo){
+                	s = "Dynamo";
+                }
+                else if(m instanceof MultiTasker){
+                	s = "MultiTasker";
+                }
+                else{
+                	s = "Schemer";
+                }
+                lblOppName.setText(m.getName());
+                lblOppType.setText("ARCHETYPE CLASS: "+ s);
+                lblOppEnergy.setText("INITIAL POWER RESERVES: "+ m.getEnergy());
 
-            lblOppName.setText("A7A");
-            lblOppType.setText("ARCHETYPE CLASS: DASHER");
-            lblOppEnergy.setText("INITIAL POWER RESERVES: 1000 ENERGY UNITS");
+            // SWAP PANES AT THE WINDOW ROOT LEVEL
+            mainMenuPane.setVisible(false);
+            mainMenuPane.setManaged(false);
+
+            briefingPane.setVisible(true);
+            briefingPane.setManaged(true);
         }
-
-        // SWAP PANES AT THE WINDOW ROOT LEVEL
-        mainMenuPane.setVisible(false);
-        mainMenuPane.setManaged(false);
-
-        briefingPane.setVisible(true);
-        briefingPane.setManaged(true);
+        catch (IOException e) {
+            System.err.println("Error loading game data or FXML: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -102,8 +131,6 @@ public class StartController {
     private void handleCommenceMatch(ActionEvent event) {
         try {
             // Your original structural compilation sequence:
-            Role selectedRole = scarerBtn.isSelected() ? Role.SCARER : Role.LAUGHER;
-            Game gameEngine = new Game(selectedRole);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/game/gui/views/GameBoard.fxml"));
             Parent root = loader.load();
@@ -202,5 +229,12 @@ public class StartController {
         popupScene.setFill(Color.TRANSPARENT); // Clears background corners outside border radius
         stagePopup.setScene(popupScene);
         stagePopup.showAndWait();
+    }
+    
+    @FXML
+    private void handleCloseWindow() {
+        // Option A: close just this window
+        Stage stage = (Stage) startBtn.getScene().getWindow();
+        stage.close();
     }
 }

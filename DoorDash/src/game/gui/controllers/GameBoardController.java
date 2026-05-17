@@ -87,7 +87,7 @@ public class GameBoardController {
     @FXML private StackPane rootContainer;
 
     // ── State ───────────────────────────────────────────────────────────────────
-    private Game          engine;
+    protected Game          engine;
     private StackPane[]   visualCells  = new StackPane[100];
     private boolean       isBotMode    = false;
     private int           lastDiceRoll = 0;
@@ -99,6 +99,7 @@ public class GameBoardController {
 
     // ── Public API ───────────────────────────────────────────────────────────────
     public void setBotMode(boolean botMode) { this.isBotMode = botMode; }
+    public Game getGame(){return this.engine;}
 
    public void setGameEngine(Game engine) {
         this.engine = engine;
@@ -700,5 +701,12 @@ public class GameBoardController {
 
         window.setScene(new Scene(layout));
         window.showAndWait();
+    }
+    
+    @FXML
+    private void handleCloseWindow() {
+        // Option A: close just this window
+        Stage stage = (Stage) rollDiceBtn.getScene().getWindow();
+        stage.close();
     }
 }
