@@ -1,26 +1,24 @@
 package game.gui;
 
+import game.gui.controllers.*;
+import game.gui.views.*;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        // Load the very first screen
-        Parent root = FXMLLoader.load(getClass().getResource("/game/gui/views/StartScreen.fxml"));
-        
+    public void start(Stage primaryStage) {
+        SceneManager.getInstance().init(primaryStage);
+
+        StartView view = new StartView();
+        new StartController(view);
+
+        primaryStage.setScene(view.getScene());
         primaryStage.setTitle("DooR DasH: Scare vs Laugh Touchdown");
-        Scene scene = new Scene(root);
-        
-        // Link the CSS
-        scene.getStylesheets().add(getClass().getResource("/game/gui/views/style.css").toExternalForm());
-        
-        primaryStage.setScene(scene);
-        primaryStage.setMinWidth(1300); 
-        primaryStage.setMinHeight(1000);
+        //primaryStage.setMinHeight(1000);
+        //primaryStage.setMinWidth(1300);
+        //primaryStage.setResizable(false);
         primaryStage.show();
     }
 
