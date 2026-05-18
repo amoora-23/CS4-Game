@@ -338,10 +338,8 @@ public class GameBoardController {
     private void updateDeckCount() {
         if (Board.getCards() == null) return;
         int remaining = Board.getCards().size();
-        // FIX #3: add display offset of +1 before first card is drawn
-        int displayCount = firstCardDrawn ? remaining : remaining + 1;
         if (cardDeckCountLabel != null)
-            cardDeckCountLabel.setText("🃏 " + displayCount + " cards remaining");
+            cardDeckCountLabel.setText("🃏 " + remaining + " cards remaining");
     }
 
     // ── Dice Roll Action ─────────────────────────────────────────────────────────
@@ -420,10 +418,10 @@ public class GameBoardController {
         }
     }
 
-    /** Approximate roll for display. */
-    private int computeApparentRoll(Monster m) {
-        return (int)(Math.random() * 6) + 1;
-    }
+//    /** Approximate roll for display. */
+//    private int computeApparentRoll(Monster m) {
+//        return (int)(Math.random() * 6) + 1;
+//    }
 
     // ── Power-Up Action ──────────────────────────────────────────────────────────
     @FXML
