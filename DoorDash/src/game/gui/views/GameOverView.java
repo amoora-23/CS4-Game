@@ -10,12 +10,13 @@ import javafx.scene.paint.Color;
 
 public class GameOverView {
 
-    private static final String BG      = "#111424";
-    private static final String CARD_BG = "#0b0d19";
-    private static final String GOLD    = "#F1C40F";
-    private static final String GRAY    = "#94A3B8";
-    private static final String GREEN   = "#2ECC71";
-    private static final String RED     = "#E74C3C";
+    // ── Forest palette ────────────────────────────────────────────────────────
+    private static final String BG      = "#0D1A09";
+    private static final String CARD_BG = "#0A1207";
+    private static final String GOLD    = "#C8900A";
+    private static final String GRAY    = "#7A8C6A";
+    private static final String GREEN   = "#4CAF50";
+    private static final String RED     = "#8B3500";
 
     // ── Exposed nodes ─────────────────────────────────────────────────────────
     public final Label  winnerBannerLbl   = new Label("🏆 WINNER");
@@ -41,7 +42,6 @@ public class GameOverView {
     private StackPane buildRoot() {
         StackPane root = new StackPane();
         root.setStyle("-fx-background-color: " + BG + ";");
-
         VBox content = buildContent();
         StackPane.setAlignment(content, Pos.CENTER);
         root.getChildren().add(content);
@@ -54,7 +54,6 @@ public class GameOverView {
         box.setPadding(new Insets(50));
         box.setMaxWidth(720);
 
-        // Title
         Label title = new Label("GAME OVER");
         title.setStyle(
             "-fx-font-family: 'Segoe UI Black';" +
@@ -70,15 +69,11 @@ public class GameOverView {
             "-fx-letter-spacing: 2px;"
         );
 
-        // Winner highlight box
-        VBox winnerBox = buildWinnerBox();
+        VBox winnerBox  = buildWinnerBox();
+        VBox standings  = buildStandingsBox();
 
-        // Final standings
-        VBox standings = buildStandingsBox();
-
-        // Buttons
-        styleButton(playAgainBtn, GREEN,   "#111424", 160, 44);
-        styleButton(exitBtn,      "#922B21", "white", 160, 44);
+        styleButton(playAgainBtn, GREEN, BG,      160, 44);
+        styleButton(exitBtn,      RED,   "#D4C9A8", 160, 44);
         HBox btnRow = new HBox(24, playAgainBtn, exitBtn);
         btnRow.setAlignment(Pos.CENTER);
 
@@ -135,9 +130,9 @@ public class GameOverView {
         box.setPadding(new Insets(16));
         box.setMinWidth(500);
         box.setStyle(
-            "-fx-background-color: #1a1c2e;" +
+            "-fx-background-color: #162012;" +
             "-fx-background-radius: 8;" +
-            "-fx-border-color: #34495E;" +
+            "-fx-border-color: #3A4A2E;" +
             "-fx-border-width: 1;" +
             "-fx-border-radius: 8;"
         );
@@ -149,8 +144,8 @@ public class GameOverView {
             "-fx-text-fill: " + GRAY + ";" +
             "-fx-letter-spacing: 1px;"
         );
-        p1FinalLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
-        p2FinalLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: white;");
+        p1FinalLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #D4C9A8;");
+        p2FinalLbl.setStyle("-fx-font-size: 14px; -fx-text-fill: #D4C9A8;");
 
         box.getChildren().addAll(hdr, p1FinalLbl, p2FinalLbl);
         return box;

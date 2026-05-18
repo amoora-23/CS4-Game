@@ -16,8 +16,8 @@ public class Main extends Application {
 
         primaryStage.setScene(view.getScene());
         primaryStage.setTitle("DooR DasH: Scare vs Laugh Touchdown");
-        //primaryStage.setMinHeight(1000);
-        //primaryStage.setMinWidth(1300);
+        primaryStage.setMinHeight(1000);
+        primaryStage.setMinWidth(1300);
         //primaryStage.setResizable(false);
         primaryStage.show();
     }

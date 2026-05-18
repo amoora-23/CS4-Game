@@ -10,36 +10,34 @@ import javafx.scene.paint.Color;
 
 public class VersusView {
 
-    private static final String BG      = "#111424";
-    private static final String CARD_BG = "#0b0d19";
-    private static final String CYAN    = "#00F2FE";
-    private static final String PINK    = "#F35588";
-    private static final String GOLD    = "#F1C40F";
-    private static final String GRAY    = "#94A3B8";
-    private static final String GREEN   = "#2ECC71";
+    // ── Forest palette ────────────────────────────────────────────────────────
+    private static final String BG      = "#0D1A09";
+    private static final String CARD_BG = "#0A1207";
+    private static final String CYAN    = "#52A65A";
+    private static final String PINK    = "#A06330";
+    private static final String GOLD    = "#C8900A";
+    private static final String GRAY    = "#7A8C6A";
+    private static final String GREEN   = "#4CAF50";
 
     // ── Exposed nodes ─────────────────────────────────────────────────────────
-    // Player card labels
-    public final Label playerNameLbl  = new Label("—");
-    public final Label playerTypeLbl  = new Label("TYPE: —");
-    public final Label playerRoleLbl  = new Label("ROLE: —");
-    public final Label playerEnergyLbl= new Label("⚡ —");
-    public final Label playerDescLbl  = new Label();
+    public final Label playerNameLbl   = new Label("—");
+    public final Label playerTypeLbl   = new Label("TYPE: —");
+    public final Label playerRoleLbl   = new Label("ROLE: —");
+    public final Label playerEnergyLbl = new Label("⚡ —");
+    public final Label playerDescLbl   = new Label();
 
-    // Opponent card labels
-    public final Label oppNameLbl     = new Label("—");
-    public final Label oppTypeLbl     = new Label("TYPE: —");
-    public final Label oppRoleLbl     = new Label("ROLE: —");
-    public final Label oppEnergyLbl   = new Label("⚡ —");
-    public final Label oppDescLbl     = new Label();
+    public final Label oppNameLbl      = new Label("—");
+    public final Label oppTypeLbl      = new Label("TYPE: —");
+    public final Label oppRoleLbl      = new Label("ROLE: —");
+    public final Label oppEnergyLbl    = new Label("⚡ —");
+    public final Label oppDescLbl      = new Label();
 
-    // Action button
-    public final Button commenceBtn   = new Button("COMMENCE MATCH");
+    public final Button commenceBtn    = new Button("COMMENCE MATCH");
 
     private final Scene scene;
 
     public VersusView() {
-        scene = new Scene(buildRoot(), 1024, 720);
+        scene = new Scene(buildRoot(), 1300, 1000);
     }
 
     public Scene getScene() { return scene; }
@@ -54,7 +52,6 @@ public class VersusView {
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(50));
 
-        // Title
         Label title = new Label("MATCH BRIEFING");
         title.setStyle(
             "-fx-font-family: 'Segoe UI Black';" +
@@ -72,11 +69,9 @@ public class VersusView {
         sep.setMaxWidth(800);
         sep.setStyle("-fx-opacity: 0.15;");
 
-        // Monster matchup row
         HBox matchup = buildMatchupRow();
 
-        // Commence button
-        styleButton(commenceBtn, GREEN, "#111424", 320, 50);
+        styleButton(commenceBtn, GREEN, BG, 320, 50);
 
         content.getChildren().addAll(title, subtitle, sep, matchup, commenceBtn);
         root.getChildren().add(content);
@@ -102,7 +97,7 @@ public class VersusView {
         vs.setStyle(
             "-fx-font-family: 'Segoe UI Black';" +
             "-fx-font-size: 28px;" +
-            "-fx-text-fill: #334155;"
+            "-fx-text-fill: #3A4A2E;"
         );
         VBox.setMargin(vs, new Insets(80, 0, 0, 0));
 
@@ -147,8 +142,8 @@ public class VersusView {
             "-fx-letter-spacing: 1px;"
         );
 
-        typeLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: white;");
-        roleLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: white;");
+        typeLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #D4C9A8;");
+        roleLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #D4C9A8;");
         energyLbl.setStyle(
             "-fx-font-family: 'Segoe UI Semibold';" +
             "-fx-font-size: 14px;" +

@@ -27,7 +27,7 @@ public class GameOverController {
 
         // Winner banner accent colour
         boolean playerWon = winner == player;
-        String accent = playerWon ? "#00F2FE" : "#F35588";
+        String accent = playerWon ? "#52A65A" : "#A06330";
 
         view.winnerBannerLbl.setStyle(
             "-fx-font-family: 'Segoe UI Black';" +
